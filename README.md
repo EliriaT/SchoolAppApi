@@ -1,1 +1,1 @@
-# An API for an Education Management System app
+Education Management System app
