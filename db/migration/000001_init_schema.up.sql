@@ -30,7 +30,7 @@ CREATE TABLE "UserRoleClass" (
 
 CREATE TABLE "School" (
                           "id" bigserial PRIMARY KEY,
-                          "name" varchar NOT NULL,
+                          "name" varchar NOT NULL UNIQUE,
                           "created_by" bigint,
                           "updated_by" bigint,
                           "created_at" timestamp DEFAULT (now()),
