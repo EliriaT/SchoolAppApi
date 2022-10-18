@@ -6,7 +6,7 @@ This repository contains the server app of the Education School Management Syste
 
 ## Run application
 
-First run the Postgres container:
+First run the PostgreSQL container:
  
  `make postgres`
  
