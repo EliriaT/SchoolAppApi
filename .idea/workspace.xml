@@ -5,11 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b1002249-cb06-4a0a-9f5e-2013c02be219" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.github/workflows/ci.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/ci.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/query/school.sql" beforeDir="false" afterPath="$PROJECT_DIR$/db/query/school.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/sqlc/school.sql.go" beforeDir="false" afterPath="$PROJECT_DIR$/db/sqlc/school.sql.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db/sqlc/school_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/db/sqlc/school_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dbPopul/random.go" beforeDir="false" afterPath="$PROJECT_DIR$/dbPopul/random.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
