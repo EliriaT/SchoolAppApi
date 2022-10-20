@@ -123,7 +123,7 @@ func (q *Queries) ListSchools(ctx context.Context, arg ListSchoolsParams) ([]Sch
 
 const updateSchool = `-- name: UpdateSchool :one
 UPDATE  "School"
-SET  name = $2
+SET  name = $2, updated_at = now()
 where id = $1
 RETURNING id, name, created_by, updated_by, created_at, updated_at
 `

@@ -21,7 +21,7 @@ OFFSET $2;
 
 -- name: UpdateSchool :one
 UPDATE  "School"
-SET  name = $2
+SET  name = $2, updated_at = now()
 where id = $1
 RETURNING *;
 
