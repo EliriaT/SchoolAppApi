@@ -30,9 +30,7 @@ func RandomString(n int) string {
 	return sb.String()
 }
 
-// RandomOwner generates a random school name
-func RandomOwner() string {
+// RandomSchool generates a random school name
+func RandomSchool() string {
 	return "I.P.L.T. " + RandomString(6) + " " + RandomString(6)
 }
-
-
