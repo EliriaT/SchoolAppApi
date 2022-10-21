@@ -39,7 +39,6 @@ func (server *Server) getSchoolbyId(ctx *gin.Context) {
 	}
 
 	school, err := server.store.GetSchoolbyId(ctx, req.ID)
-
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -48,6 +47,8 @@ func (server *Server) getSchoolbyId(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+	//school = db.School{}
+
 	ctx.JSON(http.StatusOK, school)
 }
 
