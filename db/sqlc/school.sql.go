@@ -97,7 +97,7 @@ func (q *Queries) ListSchools(ctx context.Context, arg ListSchoolsParams) ([]Sch
 		return nil, err
 	}
 	defer rows.Close()
-	var items []School
+	items := []School{}
 	for rows.Next() {
 		var i School
 		if err := rows.Scan(
