@@ -22,6 +22,7 @@ func main() {
 
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
+	//test achievement
 	err = server.Start(configSet.ServerAddress)
 
 	if err != nil {
