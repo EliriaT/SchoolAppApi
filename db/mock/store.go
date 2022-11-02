@@ -50,6 +50,21 @@ func (mr *MockStoreMockRecorder) CreateSchool(arg0, arg1 interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSchool", reflect.TypeOf((*MockStore)(nil).CreateSchool), arg0, arg1)
 }
 
+// CreateUser mocks base method.
+func (m *MockStore) CreateUser(arg0 context.Context, arg1 db.CreateUserParams) (db.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUser", arg0, arg1)
+	ret0, _ := ret[0].(db.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUser indicates an expected call of CreateUser.
+func (mr *MockStoreMockRecorder) CreateUser(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockStore)(nil).CreateUser), arg0, arg1)
+}
+
 // DeleteSchool mocks base method.
 func (m *MockStore) DeleteSchool(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
@@ -92,6 +107,21 @@ func (m *MockStore) GetSchoolbyName(arg0 context.Context, arg1 string) (db.Schoo
 func (mr *MockStoreMockRecorder) GetSchoolbyName(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSchoolbyName", reflect.TypeOf((*MockStore)(nil).GetSchoolbyName), arg0, arg1)
+}
+
+// GetUserbyId mocks base method.
+func (m *MockStore) GetUserbyId(arg0 context.Context, arg1 int64) (db.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserbyId", arg0, arg1)
+	ret0, _ := ret[0].(db.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserbyId indicates an expected call of GetUserbyId.
+func (mr *MockStoreMockRecorder) GetUserbyId(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserbyId", reflect.TypeOf((*MockStore)(nil).GetUserbyId), arg0, arg1)
 }
 
 // ListSchools mocks base method.
