@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"github.com/EliriaT/SchoolAppApi/db/service"
 	"github.com/EliriaT/SchoolAppApi/dbSeed"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -10,9 +11,12 @@ import (
 )
 
 func CreateRandomUser(t *testing.T) User {
+	hashedPassword, err := service.HashPassword(dbSeed.RandomString(8))
+	require.NoError(t, err)
+
 	arg := CreateUserParams{
 		Email:       dbSeed.RandomEmail(),
-		Password:    "will_be_hashed_in_the_future_of_course_:)",
+		Password:    hashedPassword,
 		LastName:    dbSeed.RandomString(6),
 		FirstName:   dbSeed.RandomString(6),
 		Gender:      dbSeed.RandomGender(),

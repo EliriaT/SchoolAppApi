@@ -20,9 +20,9 @@ INSERT INTO "User"(
 `
 
 type CreateUserParams struct {
-	Email       string         `json:"email"`
-	Password    string         `json:"password"`
-	LastName    string         `json:"lastName"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	LastName string `json:"lastName"`
 	FirstName   string         `json:"firstName"`
 	Gender      string         `json:"gender"`
 	PhoneNumber sql.NullString `json:"phoneNumber"`
