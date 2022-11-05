@@ -22,7 +22,7 @@ type createUserRequest struct {
 	BirthDate   time.Time `json:"birthDate" form:"birthDate" binding:"required" time_format:"2006-01-02"`
 }
 
-type createUserResponse struct {
+type userResponse struct {
 	ID                int64          `json:"id"`
 	Email             string         `json:"email"`
 	LastName          string         `json:"lastName"`
@@ -33,6 +33,21 @@ type createUserResponse struct {
 	BirthDate         time.Time      `json:"birthDate"`
 	PasswordChangedAt time.Time      `json:"passwordChangedAt"`
 	CreatedAt         time.Time      `json:"createdAt"`
+}
+
+func newUserResponse(user db.User) userResponse {
+	return userResponse{
+		ID:                user.ID,
+		Email:             user.Email,
+		LastName:          user.LastName,
+		FirstName:         user.FirstName,
+		Gender:            user.Gender,
+		PhoneNumber:       user.PhoneNumber,
+		Domicile:          user.Domicile,
+		BirthDate:         user.BirthDate,
+		PasswordChangedAt: user.PasswordChangedAt,
+		CreatedAt:         user.CreatedAt,
+	}
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
@@ -80,17 +95,52 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	response := createUserResponse{
-		ID:                user.ID,
-		Email:             user.Email,
-		LastName:          user.LastName,
-		FirstName:         user.FirstName,
-		Gender:            user.Gender,
-		PhoneNumber:       user.PhoneNumber,
-		Domicile:          user.Domicile,
-		BirthDate:         user.BirthDate,
-		PasswordChangedAt: user.PasswordChangedAt,
-		CreatedAt:         user.CreatedAt,
+	response := newUserResponse(user)
+	ctx.JSON(http.StatusOK, response)
+}
+
+type loginUserRequest struct {
+	Email    string `json:"email" form:"email" binding:"required,email"`
+	Password string `json:"password" form:"password" binding:"required,min=6"`
+}
+
+type loginUserResponse struct {
+	AccessToken string `json:"access_token"`
+	//Here i should set role, maybe user id, or should i set it in AccessToken ?
+	User userResponse
+}
+
+func (server *Server) loginUser(ctx *gin.Context) {
+	var req loginUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	user, err := server.store.GetUserbyEmail(ctx, req.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = service.CheckPassword(req.Password, user.Password)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	accessToken, err := server.tokenMaker.CreateToken(user.Email, server.config.AccessTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	}
+
+	response := loginUserResponse{
+		AccessToken: accessToken,
+		User:        newUserResponse(user),
 	}
 	ctx.JSON(http.StatusOK, response)
 }

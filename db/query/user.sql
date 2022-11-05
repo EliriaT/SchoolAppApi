@@ -8,3 +8,8 @@ INSERT INTO "User"(
 -- name: GetUserbyId :one
 SELECT * FROM "User"
 WHERE id = $1 LIMIT 1;
+
+
+-- name: GetUserbyEmail :one
+SELECT * FROM "User"
+WHERE email = $1 LIMIT 1;
