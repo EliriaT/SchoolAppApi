@@ -7,7 +7,9 @@ CREATE TABLE "User" (
                         "gender" varchar NOT NULL,
                         "phone_number" varchar,
                         "domicile" varchar,
-                        "birth_date" date NOT NULL
+                        "birth_date" date NOT NULL,
+                        "password_changed_at" timestamp NOT NULL DEFAULT '0001-01-01 00:00:00',
+                        "created_at" timestamp NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "Role" (
@@ -30,7 +32,7 @@ CREATE TABLE "UserRoleClass" (
 
 CREATE TABLE "School" (
                           "id" bigserial PRIMARY KEY,
-                          "name" varchar NOT NULL UNIQUE,
+                          "name" varchar NOT NULL,
                           "created_by" bigint,
                           "updated_by" bigint,
                           "created_at" timestamp DEFAULT (now()),
@@ -42,6 +44,7 @@ CREATE TABLE "Course" (
                           "name" varchar NOT NULL,
                           "semester_id" int,
                           "class_id" int,
+                          "dates" date[],
                           "created_by" bigint,
                           "updated_by" bigint,
                           "created_at" timestamp DEFAULT (now()),
@@ -75,7 +78,8 @@ CREATE TABLE "Lesson" (
 
 CREATE TABLE "Marks" (
                          "id" bigserial PRIMARY KEY,
-                         "lesson_id" bigint,
+                         "course_id" bigint,
+                         "mark_date" date,
                          "is_absent" boolean,
                          "mark" int,
                          "student_id" bigint,
@@ -88,8 +92,8 @@ CREATE TABLE "Marks" (
 CREATE TABLE "Semester" (
                             "id" bigserial PRIMARY KEY,
                             "name" varchar,
-                            "start_date" date,
-                            "end_date" date,
+                            "start_date" time,
+                            "end_date" time,
                             "created_by" bigint,
                             "updated_by" bigint,
                             "created_at" timestamp DEFAULT (now()),
@@ -111,10 +115,6 @@ CREATE INDEX ON "Course" ("class_id", "semester_id");
 CREATE INDEX ON "Lesson" ("course_id");
 
 CREATE INDEX ON "Lesson" ("course_id", "teacher_id");
-
-CREATE INDEX ON "Marks" ("student_id");
-
-CREATE INDEX ON "Marks" ("lesson_id", "student_id");
 
 COMMENT ON COLUMN "Marks"."mark" IS 'Bigger than 0, lower than 11';
 
@@ -154,7 +154,7 @@ ALTER TABLE "Lesson" ADD FOREIGN KEY ("created_by") REFERENCES "UserRoles" ("id"
 
 ALTER TABLE "Lesson" ADD FOREIGN KEY ("updated_by") REFERENCES "UserRoles" ("id");
 
-ALTER TABLE "Marks" ADD FOREIGN KEY ("lesson_id") REFERENCES "Lesson" ("id");
+ALTER TABLE "Marks" ADD FOREIGN KEY ("course_id") REFERENCES "Course" ("id");
 
 ALTER TABLE "Marks" ADD FOREIGN KEY ("student_id") REFERENCES "UserRoles" ("id");
 

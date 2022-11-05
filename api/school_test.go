@@ -7,7 +7,7 @@ import (
 	"fmt"
 	mockdb "github.com/EliriaT/SchoolAppApi/db/mock"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
-	"github.com/EliriaT/SchoolAppApi/dbPopul"
+	"github.com/EliriaT/SchoolAppApi/dbSeed"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -93,7 +93,7 @@ func TestGetSchoolApi(t *testing.T) {
 			tc.buildStubs(store)
 
 			//start test server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/schools/%d", tc.schoolId)
@@ -113,8 +113,8 @@ func TestGetSchoolApi(t *testing.T) {
 
 func randomSchool() db.School {
 	return db.School{
-		ID:        dbPopul.RandomInt(1, 1000),
-		Name:      dbPopul.RandomSchool(),
+		ID:        dbSeed.RandomInt(1, 1000),
+		Name:      dbSeed.RandomSchool(),
 		CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	}
 

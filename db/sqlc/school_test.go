@@ -3,13 +3,13 @@ package db
 import (
 	"context"
 	"database/sql"
-	"github.com/EliriaT/SchoolAppApi/dbPopul"
+	"github.com/EliriaT/SchoolAppApi/dbSeed"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func CreateRandomSchool(t *testing.T) School {
-	arg := dbPopul.RandomSchool()
+	arg := dbSeed.RandomSchool()
 
 	school, err := testQueries.CreateSchool(context.Background(), arg)
 
@@ -41,7 +41,7 @@ func TestUpdateSchool(t *testing.T) {
 
 	arg := UpdateSchoolParams{
 		ID:   school1.ID,
-		Name: dbPopul.RandomSchool(),
+		Name: dbSeed.RandomSchool(),
 	}
 
 	school2, err := testQueries.UpdateSchool(context.Background(), arg)

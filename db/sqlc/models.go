@@ -24,6 +24,7 @@ type Course struct {
 	Name       string        `json:"name"`
 	SemesterID sql.NullInt32 `json:"semesterID"`
 	ClassID    sql.NullInt32 `json:"classID"`
+	Dates      []time.Time   `json:"dates"`
 	CreatedBy  sql.NullInt64 `json:"createdBy"`
 	UpdatedBy  sql.NullInt64 `json:"updatedBy"`
 	CreatedAt  sql.NullTime  `json:"createdAt"`
@@ -47,7 +48,8 @@ type Lesson struct {
 
 type Mark struct {
 	ID       int64         `json:"id"`
-	LessonID sql.NullInt64 `json:"lessonID"`
+	CourseID sql.NullInt64 `json:"courseID"`
+	MarkDate sql.NullTime  `json:"markDate"`
 	IsAbsent sql.NullBool  `json:"isAbsent"`
 	// Bigger than 0, lower than 11
 	Mark      sql.NullInt32 `json:"mark"`
@@ -84,15 +86,17 @@ type Semester struct {
 }
 
 type User struct {
-	ID          int64          `json:"id"`
-	Email       string         `json:"email"`
-	Password    string         `json:"password"`
-	LastName    string         `json:"lastName"`
-	FirstName   string         `json:"firstName"`
-	Gender      string         `json:"gender"`
-	PhoneNumber sql.NullString `json:"phoneNumber"`
-	Domicile    sql.NullString `json:"domicile"`
-	BirthDate   time.Time      `json:"birthDate"`
+	ID                int64          `json:"id"`
+	Email             string         `json:"email"`
+	Password          string         `json:"password"`
+	LastName          string         `json:"lastName"`
+	FirstName         string         `json:"firstName"`
+	Gender            string         `json:"gender"`
+	PhoneNumber       sql.NullString `json:"phoneNumber"`
+	Domicile          sql.NullString `json:"domicile"`
+	BirthDate         time.Time      `json:"birthDate"`
+	PasswordChangedAt time.Time      `json:"passwordChangedAt"`
+	CreatedAt         time.Time      `json:"createdAt"`
 }
 
 type UserRole struct {

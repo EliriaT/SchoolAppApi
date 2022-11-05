@@ -10,9 +10,12 @@ import (
 
 type Querier interface {
 	CreateSchool(ctx context.Context, name string) (School, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteSchool(ctx context.Context, id int64) error
 	GetSchoolbyId(ctx context.Context, id int64) (School, error)
 	GetSchoolbyName(ctx context.Context, name string) (School, error)
+	GetUserbyEmail(ctx context.Context, email string) (User, error)
+	GetUserbyId(ctx context.Context, id int64) (User, error)
 	ListSchools(ctx context.Context, arg ListSchoolsParams) ([]School, error)
 	UpdateSchool(ctx context.Context, arg UpdateSchoolParams) (School, error)
 }
