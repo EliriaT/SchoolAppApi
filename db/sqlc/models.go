@@ -10,18 +10,19 @@ import (
 )
 
 type Class struct {
-	ID        int64         `json:"id"`
-	Name      string        `json:"name"`
-	Diriginte sql.NullInt64 `json:"diriginte"`
-	CreatedBy sql.NullInt64 `json:"createdBy"`
-	UpdatedBy sql.NullInt64 `json:"updatedBy"`
-	CreatedAt sql.NullTime  `json:"createdAt"`
-	UpdatedAt sql.NullTime  `json:"updatedAt"`
+	ID          int64         `json:"id"`
+	Name        string        `json:"name"`
+	HeadTeacher sql.NullInt64 `json:"headTeacher"`
+	CreatedBy   sql.NullInt64 `json:"createdBy"`
+	UpdatedBy   sql.NullInt64 `json:"updatedBy"`
+	CreatedAt   sql.NullTime  `json:"createdAt"`
+	UpdatedAt   sql.NullTime  `json:"updatedAt"`
 }
 
 type Course struct {
 	ID         int64         `json:"id"`
 	Name       string        `json:"name"`
+	TeacherID  sql.NullInt64 `json:"teacherID"`
 	SemesterID sql.NullInt32 `json:"semesterID"`
 	ClassID    sql.NullInt32 `json:"classID"`
 	Dates      []time.Time   `json:"dates"`
@@ -38,7 +39,7 @@ type Lesson struct {
 	TeacherID sql.NullInt64  `json:"teacherID"`
 	StartHour sql.NullTime   `json:"startHour"`
 	EndHour   sql.NullTime   `json:"endHour"`
-	WeekDay   sql.NullTime   `json:"weekDay"`
+	WeekDay   sql.NullString `json:"weekDay"`
 	Classroom sql.NullString `json:"classroom"`
 	CreatedBy sql.NullInt64  `json:"createdBy"`
 	UpdatedBy sql.NullInt64  `json:"updatedBy"`
@@ -97,6 +98,7 @@ type User struct {
 	BirthDate         time.Time      `json:"birthDate"`
 	PasswordChangedAt time.Time      `json:"passwordChangedAt"`
 	CreatedAt         time.Time      `json:"createdAt"`
+	UpdatedAt         sql.NullTime   `json:"updatedAt"`
 }
 
 type UserRole struct {

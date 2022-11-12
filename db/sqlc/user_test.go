@@ -3,26 +3,26 @@ package db
 import (
 	"context"
 	"database/sql"
+	"github.com/EliriaT/SchoolAppApi/db/seed"
 	"github.com/EliriaT/SchoolAppApi/db/service"
-	"github.com/EliriaT/SchoolAppApi/dbSeed"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
 func CreateRandomUser(t *testing.T) User {
-	hashedPassword, err := service.HashPassword(dbSeed.RandomString(8))
+	hashedPassword, err := service.HashPassword(seed.RandomString(8))
 	require.NoError(t, err)
 
 	arg := CreateUserParams{
-		Email:       dbSeed.RandomEmail(),
+		Email:       seed.RandomEmail(),
 		Password:    hashedPassword,
-		LastName:    dbSeed.RandomString(6),
-		FirstName:   dbSeed.RandomString(6),
-		Gender:      dbSeed.RandomGender(),
-		PhoneNumber: sql.NullString{Valid: true, String: dbSeed.RandomPhoneNumber()},
-		Domicile:    sql.NullString{Valid: true, String: dbSeed.RandomResidence()},
-		BirthDate:   dbSeed.RandomBirthDate(),
+		LastName:    seed.RandomString(6),
+		FirstName:   seed.RandomString(6),
+		Gender:      seed.RandomGender(),
+		PhoneNumber: sql.NullString{Valid: true, String: seed.RandomPhoneNumber()},
+		Domicile:    sql.NullString{Valid: true, String: seed.RandomResidence()},
+		BirthDate:   seed.RandomBirthDate(),
 	}
 
 	user, err := testQueries.CreateUser(context.Background(), arg)

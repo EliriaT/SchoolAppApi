@@ -1,4 +1,4 @@
-package dbSeed
+package seed
 
 import (
 	"fmt"

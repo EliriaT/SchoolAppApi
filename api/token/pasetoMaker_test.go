@@ -1,17 +1,17 @@
 package token
 
 import (
-	"github.com/EliriaT/SchoolAppApi/dbSeed"
+	"github.com/EliriaT/SchoolAppApi/db/seed"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 )
 
 func TestPasetoMaker(t *testing.T) {
-	maker, err := NewPasetoMaker(dbSeed.RandomString(32))
+	maker, err := NewPasetoMaker(seed.RandomString(32))
 	require.NoError(t, err)
 
-	email := dbSeed.RandomEmail()
+	email := seed.RandomEmail()
 	duration := time.Minute
 
 	issuedAt := time.Now()
@@ -32,10 +32,10 @@ func TestPasetoMaker(t *testing.T) {
 }
 
 func TestExpiredPasetoToken(t *testing.T) {
-	maker, err := NewPasetoMaker(dbSeed.RandomString(32))
+	maker, err := NewPasetoMaker(seed.RandomString(32))
 	require.NoError(t, err)
 
-	token, err := maker.CreateToken(dbSeed.RandomEmail(), -time.Minute)
+	token, err := maker.CreateToken(seed.RandomEmail(), -time.Minute)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 

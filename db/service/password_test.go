@@ -1,14 +1,14 @@
 package service
 
 import (
-	"github.com/EliriaT/SchoolAppApi/dbSeed"
+	"github.com/EliriaT/SchoolAppApi/db/seed"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 	"testing"
 )
 
 func TestPassword(t *testing.T) {
-	password := dbSeed.RandomString(6)
+	password := seed.RandomString(6)
 	hashedPassword1, err := HashPassword(password)
 	require.NoError(t, err)
 	require.NotEmpty(t, hashedPassword1)
@@ -16,7 +16,7 @@ func TestPassword(t *testing.T) {
 	err = CheckPassword(password, hashedPassword1)
 	require.NoError(t, err)
 
-	wrongPassword := dbSeed.RandomString(5)
+	wrongPassword := seed.RandomString(5)
 	err = CheckPassword(wrongPassword, hashedPassword1)
 	require.EqualError(t, err, bcrypt.ErrMismatchedHashAndPassword.Error())
 

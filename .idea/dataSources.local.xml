@@ -15,7 +15,10 @@
               <node kind="schema" qname="@" />
             </node>
             <node kind="database" qname="school">
-              <node kind="schema" qname="public" />
+              <node kind="schema">
+                <name qname="public" />
+                <name qname="information_schema" />
+              </node>
             </node>
           </node>
         </introspection-scope>

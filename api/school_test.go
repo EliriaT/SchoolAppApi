@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/EliriaT/SchoolAppApi/api/token"
 	mockdb "github.com/EliriaT/SchoolAppApi/db/mock"
+	"github.com/EliriaT/SchoolAppApi/db/seed"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
-	"github.com/EliriaT/SchoolAppApi/dbSeed"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -17,18 +18,23 @@ import (
 	"time"
 )
 
+// TODO
 func TestGetSchoolApi(t *testing.T) {
 	school := randomSchool()
 
 	testCases := []struct {
 		name          string
 		schoolId      int64
+		setupAuth     func(t *testing.T, request *http.Request, marker token.TokenMaker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:     "OK",
 			schoolId: school.ID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.TokenMaker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, seed.RandomEmail(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Eq(school.ID)).Times(1).Return(school, nil)
@@ -113,8 +119,8 @@ func TestGetSchoolApi(t *testing.T) {
 
 func randomSchool() db.School {
 	return db.School{
-		ID:        dbSeed.RandomInt(1, 1000),
-		Name:      dbSeed.RandomSchool(),
+		ID:        seed.RandomInt(1, 1000),
+		Name:      seed.RandomSchool(),
 		CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	}
 
