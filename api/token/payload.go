@@ -6,6 +6,16 @@ import (
 	"time"
 )
 
+type Role int
+
+const (
+	Admin Role = iota
+	SchoolManager
+	Teacher
+	Head_teacher
+	Student
+)
+
 // Different types of error returned by the VerifyToken function
 var (
 	ErrInvalidToken = errors.New("token is invalid")
@@ -15,7 +25,8 @@ var (
 // Payload contains the payload data of the token
 type Payload struct {
 	ID        uuid.UUID `json:"id"`
-	Email     string    `json:"Email"`
+	Email     string    `json:"email"`
+	Role      Role      `json:"role"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 	//jwt.RegisteredClaims
@@ -36,6 +47,7 @@ func NewPayload(email string, duration time.Duration) (*Payload, error) {
 		return nil, err
 	}
 
+	// I should have here User ID which is a uuid, and user role
 	payload := &Payload{
 		ID:        tokenId,
 		Email:     email,

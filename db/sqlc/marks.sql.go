@@ -73,9 +73,62 @@ func (q *Queries) GetCourseMarks(ctx context.Context, courseID sql.NullInt64) (M
 	return i, err
 }
 
+const getStudentCourseMarks = `-- name: GetStudentCourseMarks :one
+SELECT id, course_id, mark_date, is_absent, mark, student_id, created_by, updated_by, created_at, updated_at FROM "Marks"
+WHERE course_id = $1 AND student_id = $2
+`
+
+type GetStudentCourseMarksParams struct {
+	CourseID  sql.NullInt64 `json:"courseID"`
+	StudentID sql.NullInt64 `json:"studentID"`
+}
+
+func (q *Queries) GetStudentCourseMarks(ctx context.Context, arg GetStudentCourseMarksParams) (Mark, error) {
+	row := q.db.QueryRowContext(ctx, getStudentCourseMarks, arg.CourseID, arg.StudentID)
+	var i Mark
+	err := row.Scan(
+		&i.ID,
+		&i.CourseID,
+		&i.MarkDate,
+		&i.IsAbsent,
+		&i.Mark,
+		&i.StudentID,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateCourseAbsencebyId = `-- name: UpdateCourseAbsencebyId :one
+UPDATE  "Marks"
+SET  mark = 0, is_absent = true,updated_at = now()
+where id = $1
+RETURNING id, course_id, mark_date, is_absent, mark, student_id, created_by, updated_by, created_at, updated_at
+`
+
+func (q *Queries) UpdateCourseAbsencebyId(ctx context.Context, id int64) (Mark, error) {
+	row := q.db.QueryRowContext(ctx, updateCourseAbsencebyId, id)
+	var i Mark
+	err := row.Scan(
+		&i.ID,
+		&i.CourseID,
+		&i.MarkDate,
+		&i.IsAbsent,
+		&i.Mark,
+		&i.StudentID,
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateCourseMarksbyId = `-- name: UpdateCourseMarksbyId :one
 UPDATE  "Marks"
-SET  mark = $2, updated_at = now()
+SET  mark = $2, is_absent = false,updated_at = now()
 where id = $1
 RETURNING id, course_id, mark_date, is_absent, mark, student_id, created_by, updated_by, created_at, updated_at
 `

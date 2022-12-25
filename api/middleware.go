@@ -15,6 +15,7 @@ const (
 	authorizationPayloadKey = "authorization_payload"
 )
 
+// Only authentificates the requests
 func authMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorizationHeader := ctx.GetHeader(authorizationHeaderKey)
@@ -44,6 +45,7 @@ func authMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 			return
 		}
 
+		//stored in the gin context with the authorizationPayloadKey
 		ctx.Set(authorizationPayloadKey, payload)
 		ctx.Next()
 	}

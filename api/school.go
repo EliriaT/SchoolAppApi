@@ -12,12 +12,20 @@ type createSchoolRequest struct {
 	Name string `json:"name" binding:"required"`
 }
 
+// in the handler the authorization is checked, only the admin user can create a school
 func (server *Server) createSchool(ctx *gin.Context) {
 	var req createSchoolRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+
+	//here we have access to the payload from the token and we check if the user is authorized to create a school
+	//authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	//if authPayload.Role != token.Admin {
+	//	err := errors.New("Not authorized for this action")
+	//	ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+	//}
 
 	school, err := server.store.CreateSchool(ctx, req.Name)
 
@@ -28,6 +36,7 @@ func (server *Server) createSchool(ctx *gin.Context) {
 				ctx.JSON(http.StatusForbidden, errorResponse(err))
 				return
 			}
+
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -39,6 +48,7 @@ type getSchoolRequest struct {
 	ID int64 `uri:"id" binding:"required,min=1"`
 }
 
+// only a school manager can get its school, should not be from Id, but from userid that is in the token payload
 func (server *Server) getSchoolbyId(ctx *gin.Context) {
 	var req getSchoolRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
@@ -65,6 +75,7 @@ type listSchoolRequest struct {
 	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
+// only the admin can list schools
 func (server *Server) listSchools(ctx *gin.Context) {
 	var req listSchoolRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {

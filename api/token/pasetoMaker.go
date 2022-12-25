@@ -23,7 +23,7 @@ func (p *PasetoMaker) CreateToken(email string, duration time.Duration) (string,
 	return p.paseto.Encrypt(p.symmetricKey, payload, nil)
 }
 
-// VerifyToken checks if the tocken is valid, or not
+// VerifyToken checks if the tocken is valid, or not and returns the decrypted payload
 func (p *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 	payload := &Payload{}
 
