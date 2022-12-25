@@ -2,8 +2,8 @@ package api
 
 import (
 	"github.com/EliriaT/SchoolAppApi/config"
+	"github.com/EliriaT/SchoolAppApi/db/seed"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
-	"github.com/EliriaT/SchoolAppApi/dbSeed"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -13,8 +13,8 @@ import (
 
 func newTestServer(t *testing.T, store db.Store) *Server {
 	configOb := config.Config{
-		TokenSymmetricKey:   dbSeed.RandomString(32),
-		AccessTokenDuration: time.Minute,
+		TokenSymmetricKey:   seed.RandomString(32),
+		AccessTokenDuration: time.Hour,
 	}
 
 	server, err := NewServer(store, configOb)

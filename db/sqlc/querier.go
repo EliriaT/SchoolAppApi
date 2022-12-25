@@ -6,18 +6,52 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
+	AddUserToClass(ctx context.Context, arg AddUserToClassParams) (UserRoleClass, error)
+	CreateClass(ctx context.Context, arg CreateClassParams) (Class, error)
+	CreateCourse(ctx context.Context, arg CreateCourseParams) (Course, error)
+	CreateLesson(ctx context.Context, arg CreateLessonParams) (Lesson, error)
+	CreateMark(ctx context.Context, arg CreateMarkParams) (Mark, error)
+	CreateRoleForUser(ctx context.Context, arg CreateRoleForUserParams) (UserRole, error)
+	CreateRoles(ctx context.Context, arg CreateRolesParams) ([]Role, error)
 	CreateSchool(ctx context.Context, name string) (School, error)
+	CreateSemester(ctx context.Context, arg CreateSemesterParams) (Semester, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteSchool(ctx context.Context, id int64) error
+	DeleteUser(ctx context.Context, id int64) error
+	GetClassById(ctx context.Context, id int64) (Class, error)
+	GetClassSchedule(ctx context.Context, classID sql.NullInt32) (GetClassScheduleRow, error)
+	GetCourseMarks(ctx context.Context, courseID sql.NullInt64) (Mark, error)
+	GetCurrentSemester(ctx context.Context) (Semester, error)
+	GetLessonsOfCourse(ctx context.Context, courseID sql.NullInt64) (Lesson, error)
+	GetRolebyName(ctx context.Context, name string) (Role, error)
+	GetRoles(ctx context.Context) ([]Role, error)
 	GetSchoolbyId(ctx context.Context, id int64) (School, error)
 	GetSchoolbyName(ctx context.Context, name string) (School, error)
+	GetSemesterbyId(ctx context.Context, id int64) (Semester, error)
+	GetSemesters(ctx context.Context, arg GetSemestersParams) (Semester, error)
+	GetStudentCourseMarks(ctx context.Context, arg GetStudentCourseMarksParams) (Mark, error)
+	GetTeacherSchedule(ctx context.Context, teacherID sql.NullInt64) (GetTeacherScheduleRow, error)
+	GetUserClassByUserRoleId(ctx context.Context, userRoleID sql.NullInt64) (UserRoleClass, error)
+	GetUserRoleByUserId(ctx context.Context, userID sql.NullInt64) (UserRole, error)
 	GetUserbyEmail(ctx context.Context, email string) (User, error)
 	GetUserbyId(ctx context.Context, id int64) (User, error)
+	ListAllClasses(ctx context.Context, arg ListAllClassesParams) ([]Class, error)
+	ListCoursesOfClass(ctx context.Context, arg ListCoursesOfClassParams) ([]Course, error)
+	ListCoursesOfTeacher(ctx context.Context, arg ListCoursesOfTeacherParams) ([]Course, error)
 	ListSchools(ctx context.Context, arg ListSchoolsParams) ([]School, error)
+	UpdateClassHeadTeacher(ctx context.Context, arg UpdateClassHeadTeacherParams) (Class, error)
+	UpdateCourseAbsencebyId(ctx context.Context, id int64) (Mark, error)
+	UpdateCourseDates(ctx context.Context, arg UpdateCourseDatesParams) (Course, error)
+	UpdateCourseMarksbyId(ctx context.Context, arg UpdateCourseMarksbyIdParams) (Mark, error)
+	UpdateCourseTeacher(ctx context.Context, arg UpdateCourseTeacherParams) (Course, error)
+	UpdateLessonTimeAndPlace(ctx context.Context, arg UpdateLessonTimeAndPlaceParams) (Lesson, error)
 	UpdateSchool(ctx context.Context, arg UpdateSchoolParams) (School, error)
+	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (User, error)
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

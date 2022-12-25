@@ -1,7 +1,7 @@
 package token
 
 import (
-	"github.com/EliriaT/SchoolAppApi/dbSeed"
+	"github.com/EliriaT/SchoolAppApi/db/seed"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -9,10 +9,10 @@ import (
 )
 
 func TestJWTMaker(t *testing.T) {
-	maker, err := NewJWTMaker(dbSeed.RandomString(32))
+	maker, err := NewJWTMaker(seed.RandomString(32))
 	require.NoError(t, err)
 
-	email := dbSeed.RandomEmail()
+	email := seed.RandomEmail()
 	duration := time.Minute
 
 	issuedAt := time.Now()
@@ -33,10 +33,10 @@ func TestJWTMaker(t *testing.T) {
 }
 
 func TestExpiredJWTToken(t *testing.T) {
-	maker, err := NewJWTMaker(dbSeed.RandomString(32))
+	maker, err := NewJWTMaker(seed.RandomString(32))
 	require.NoError(t, err)
 
-	token, err := maker.CreateToken(dbSeed.RandomEmail(), -time.Minute)
+	token, err := maker.CreateToken(seed.RandomEmail(), -time.Minute)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -48,14 +48,14 @@ func TestExpiredJWTToken(t *testing.T) {
 
 // TestInvalidJWTTokenAlgNone tests if vulnerable to token forgery by chaning alg in header
 func TestInvalidJWTTokenAlgNone(t *testing.T) {
-	payload, err := NewPayload(dbSeed.RandomEmail(), time.Minute)
+	payload, err := NewPayload(seed.RandomEmail(), time.Minute)
 	require.NoError(t, err)
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodNone, payload)
 	token, err := jwtToken.SignedString(jwt.UnsafeAllowNoneSignatureType)
 	require.NoError(t, err)
 
-	maker, err := NewJWTMaker(dbSeed.RandomString(32))
+	maker, err := NewJWTMaker(seed.RandomString(32))
 	require.NoError(t, err)
 
 	payload, err = maker.VerifyToken(token)

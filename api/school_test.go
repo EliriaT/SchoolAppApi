@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/EliriaT/SchoolAppApi/api/token"
 	mockdb "github.com/EliriaT/SchoolAppApi/db/mock"
+	"github.com/EliriaT/SchoolAppApi/db/seed"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
-	"github.com/EliriaT/SchoolAppApi/dbSeed"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -17,18 +18,25 @@ import (
 	"time"
 )
 
+// TODO
 func TestGetSchoolApi(t *testing.T) {
+	// i should create an admin user
+	//user := seed.
 	school := randomSchool()
 
 	testCases := []struct {
 		name          string
 		schoolId      int64
+		setupAuth     func(t *testing.T, request *http.Request, maker token.TokenMaker)
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:     "OK",
 			schoolId: school.ID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.TokenMaker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, seed.RandomEmail(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Eq(school.ID)).Times(1).Return(school, nil)
@@ -43,6 +51,9 @@ func TestGetSchoolApi(t *testing.T) {
 		{
 			name:     "NotFound",
 			schoolId: school.ID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.TokenMaker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, seed.RandomEmail(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs, returning empty school
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Eq(school.ID)).Times(1).Return(db.School{}, sql.ErrNoRows)
@@ -56,6 +67,9 @@ func TestGetSchoolApi(t *testing.T) {
 		{
 			name:     "InternalError",
 			schoolId: school.ID,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.TokenMaker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, seed.RandomEmail(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs, returning empty school
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Eq(school.ID)).Times(1).Return(db.School{}, sql.ErrConnDone)
@@ -69,6 +83,9 @@ func TestGetSchoolApi(t *testing.T) {
 		{
 			name:     "InvalidId",
 			schoolId: 0,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.TokenMaker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, seed.RandomEmail(), time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Any()).Times(0)
@@ -76,6 +93,21 @@ func TestGetSchoolApi(t *testing.T) {
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				//check the response
 				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name:     "NoAuthorization",
+			schoolId: 0,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.TokenMaker) {
+
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stubs
+				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Any()).Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				//check the response
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 	}
@@ -98,8 +130,10 @@ func TestGetSchoolApi(t *testing.T) {
 
 			url := fmt.Sprintf("/schools/%d", tc.schoolId)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
-
 			require.NoError(t, err)
+
+			tc.setupAuth(t, request, server.tokenMaker)
+
 			//we get the response from the server in the recorder
 			server.router.ServeHTTP(recorder, request)
 
@@ -113,8 +147,8 @@ func TestGetSchoolApi(t *testing.T) {
 
 func randomSchool() db.School {
 	return db.School{
-		ID:        dbSeed.RandomInt(1, 1000),
-		Name:      dbSeed.RandomSchool(),
+		ID:        seed.RandomInt(1, 1000),
+		Name:      seed.RandomSchool(),
 		CreatedAt: sql.NullTime{Time: time.Now(), Valid: true},
 	}
 

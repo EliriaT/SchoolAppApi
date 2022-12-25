@@ -2,16 +2,16 @@ package api
 
 import (
 	"fmt"
+	token "github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/config"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
-	"github.com/EliriaT/SchoolAppApi/token"
 	"github.com/gin-gonic/gin"
 )
 
 // Serves for HTTP requests
 type Server struct {
 	store      db.Store
-	tokenMaker token.TokenMarker
+	tokenMaker token.TokenMaker
 	router     *gin.Engine
 	config     config.Config
 }
@@ -37,9 +37,11 @@ func (server *Server) setupRouter() {
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
 
-	router.POST("/schools", server.createSchool)
-	router.GET("/schools/:id", server.getSchoolbyId)
-	router.GET("/schools", server.listSchools)
+	authRoutes := router.Group("/schools").Use(authMiddleware(server.tokenMaker))
+
+	authRoutes.POST("", server.createSchool)
+	authRoutes.GET("/:id", server.getSchoolbyId)
+	authRoutes.GET("", server.listSchools)
 
 	server.router = router
 }

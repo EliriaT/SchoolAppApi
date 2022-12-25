@@ -54,8 +54,8 @@ func (j *JWTMaker) VerifyToken(token string) (*Payload, error) {
 	return payload, nil
 }
 
-// NewJWTMaker creates a new JWTMaker that implements the TokenMarker interface
-func NewJWTMaker(secretKey string) (TokenMarker, error) {
+// NewJWTMaker creates a new JWTMaker that implements the TokenMaker interface
+func NewJWTMaker(secretKey string) (TokenMaker, error) {
 	if len(secretKey) < minSecretKeySize {
 		return nil, fmt.Errorf("invalid key size: must be at least %d characthers length", minSecretKeySize)
 	}

@@ -2,7 +2,7 @@ package token
 
 import "time"
 
-type TokenMarker interface {
+type TokenMaker interface {
 	// CreateToken creates a new token for a specific user with unique email,
 	CreateToken(email string, duration time.Duration) (string, error)
 

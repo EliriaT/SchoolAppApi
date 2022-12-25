@@ -9,7 +9,9 @@ CREATE TABLE "User" (
                         "domicile" varchar,
                         "birth_date" date NOT NULL,
                         "password_changed_at" timestamp NOT NULL DEFAULT '0001-01-01 00:00:00',
-                        "created_at" timestamp NOT NULL DEFAULT (now())
+                        "created_at" timestamp NOT NULL DEFAULT (now()),
+                        "updated_at" timestamp
+
 );
 
 CREATE TABLE "Role" (
@@ -32,7 +34,7 @@ CREATE TABLE "UserRoleClass" (
 
 CREATE TABLE "School" (
                           "id" bigserial PRIMARY KEY,
-                          "name" varchar NOT NULL,
+                          "name" varchar UNIQUE NOT NULL,
                           "created_by" bigint,
                           "updated_by" bigint,
                           "created_at" timestamp DEFAULT (now()),
@@ -42,6 +44,7 @@ CREATE TABLE "School" (
 CREATE TABLE "Course" (
                           "id" bigserial PRIMARY KEY,
                           "name" varchar NOT NULL,
+                          teacher_id bigint,
                           "semester_id" int,
                           "class_id" int,
                           "dates" date[],
@@ -54,7 +57,7 @@ CREATE TABLE "Course" (
 CREATE TABLE "Class" (
                          "id" bigserial PRIMARY KEY,
                          "name" varchar NOT NULL,
-                         "diriginte" bigint,
+                         "head_teacher" bigint,
                          "created_by" bigint,
                          "updated_by" bigint,
                          "created_at" timestamp DEFAULT (now()),
@@ -68,7 +71,7 @@ CREATE TABLE "Lesson" (
                           "teacher_id" bigint,
                           "start_hour" time,
                           "end_hour" time,
-                          "week_day" date,
+                          "week_day" varchar,
                           "classroom" varchar,
                           "created_by" bigint,
                           "updated_by" bigint,
@@ -140,7 +143,10 @@ ALTER TABLE "Course" ADD FOREIGN KEY ("created_by") REFERENCES "UserRoles" ("id"
 
 ALTER TABLE "Course" ADD FOREIGN KEY ("updated_by") REFERENCES "UserRoles" ("id");
 
-ALTER TABLE "Class" ADD FOREIGN KEY ("diriginte") REFERENCES "UserRoles" ("id");
+
+ALTER TABLE "Course" ADD FOREIGN KEY ("teacher_id") REFERENCES "UserRoles" ("id");
+
+ALTER TABLE "Class" ADD FOREIGN KEY ("head_teacher") REFERENCES "UserRoles" ("id");
 
 ALTER TABLE "Class" ADD FOREIGN KEY ("created_by") REFERENCES "UserRoles" ("id");
 

@@ -23,7 +23,7 @@ func (p *PasetoMaker) CreateToken(email string, duration time.Duration) (string,
 	return p.paseto.Encrypt(p.symmetricKey, payload, nil)
 }
 
-// VerifyToken checks if the tocken is valid, or not
+// VerifyToken checks if the tocken is valid, or not and returns the decrypted payload
 func (p *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 	payload := &Payload{}
 
@@ -40,7 +40,7 @@ func (p *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 }
 
 // NewPasetoMaker creates a new PasetoMaker
-func NewPasetoMaker(symmetricKey string) (TokenMarker, error) {
+func NewPasetoMaker(symmetricKey string) (TokenMaker, error) {
 	if len(symmetricKey) != chacha20poly1305.KeySize {
 		return nil, fmt.Errorf("invalid key size: must be at %d characthers length", chacha20poly1305.KeySize)
 	}
