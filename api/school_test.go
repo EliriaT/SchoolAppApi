@@ -9,6 +9,7 @@ import (
 	mockdb "github.com/EliriaT/SchoolAppApi/db/mock"
 	"github.com/EliriaT/SchoolAppApi/db/seed"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
+	"github.com/EliriaT/SchoolAppApi/service/dto"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"io"
@@ -39,6 +40,7 @@ func TestGetSchoolApi(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs
+				store.EXPECT().GetRoles(gomock.Any()).Times(1)
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Eq(school.ID)).Times(1).Return(school, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -56,6 +58,7 @@ func TestGetSchoolApi(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs, returning empty school
+				store.EXPECT().GetRoles(gomock.Any()).Times(1)
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Eq(school.ID)).Times(1).Return(db.School{}, sql.ErrNoRows)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -72,6 +75,7 @@ func TestGetSchoolApi(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs, returning empty school
+				store.EXPECT().GetRoles(gomock.Any()).Times(1)
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Eq(school.ID)).Times(1).Return(db.School{}, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -88,6 +92,7 @@ func TestGetSchoolApi(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs
+				store.EXPECT().GetRoles(gomock.Any()).Times(1)
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -103,6 +108,7 @@ func TestGetSchoolApi(t *testing.T) {
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stubs
+				store.EXPECT().GetRoles(gomock.Any()).Times(1)
 				store.EXPECT().GetSchoolbyId(gomock.Any(), gomock.Any()).Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -157,7 +163,7 @@ func randomSchool() db.School {
 func requireBodyMatchSchool(t *testing.T, body *bytes.Buffer, school db.School) {
 	data, err := io.ReadAll(body)
 
-	var respSchool db.School
+	var respSchool dto.SchoolResponse
 	err = json.Unmarshal(data, &respSchool)
 	require.NoError(t, err)
 	require.EqualValues(t, school.ID, respSchool.ID)

@@ -6,16 +6,6 @@ import (
 	"time"
 )
 
-type Role int
-
-const (
-	Admin Role = iota
-	SchoolManager
-	Teacher
-	Head_teacher
-	Student
-)
-
 // Different types of error returned by the VerifyToken function
 var (
 	ErrInvalidToken = errors.New("token is invalid")
@@ -26,7 +16,10 @@ var (
 type Payload struct {
 	ID        uuid.UUID `json:"id"`
 	Email     string    `json:"email"`
-	Role      Role      `json:"role"`
+	Role      []int64   `json:"role"`
+	SchoolID  int64     `json:"school_id"`
+	ClassID   int64     `json:"class_id"`
+	UserID    int64     `json:"user_id"`
 	IssuedAt  time.Time `json:"issued_at"`
 	ExpiredAt time.Time `json:"expired_at"`
 	//jwt.RegisteredClaims
@@ -41,7 +34,7 @@ func (payload *Payload) Valid() error {
 	return nil
 }
 
-func NewPayload(email string, duration time.Duration) (*Payload, error) {
+func NewPayload(email string, role []int64, SchoolID int64, ClassID int64, UserID int64, duration time.Duration) (*Payload, error) {
 	tokenId, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -51,6 +44,10 @@ func NewPayload(email string, duration time.Duration) (*Payload, error) {
 	payload := &Payload{
 		ID:        tokenId,
 		Email:     email,
+		Role:      role,
+		SchoolID:  SchoolID,
+		ClassID:   ClassID,
+		UserID:    UserID,
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),
 		//RegisteredClaims: jwt.RegisteredClaims{

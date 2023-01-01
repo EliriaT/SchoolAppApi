@@ -18,9 +18,9 @@ INSERT INTO "Role"(
         )
  RETURNING *;
 
--- name: GetRolebyName :one
+-- name: GetRolebyId :one
 SELECT * FROM "Role"
-WHERE name = $1 LIMIT 1;
+WHERE id = $1 LIMIT 1;
 
 -- name: GetRoles :many
 SELECT * FROM "Role";

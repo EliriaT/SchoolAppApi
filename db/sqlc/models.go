@@ -90,12 +90,13 @@ type User struct {
 	ID                int64          `json:"id"`
 	Email             string         `json:"email"`
 	Password          string         `json:"password"`
+	TotpSecret        string         `json:"totpSecret"`
 	LastName          string         `json:"lastName"`
 	FirstName         string         `json:"firstName"`
 	Gender            string         `json:"gender"`
 	PhoneNumber       sql.NullString `json:"phoneNumber"`
 	Domicile          sql.NullString `json:"domicile"`
-	BirthDate         time.Time      `json:"birthDate"`
+	BirthDate         sql.NullTime   `json:"birthDate"`
 	PasswordChangedAt time.Time      `json:"passwordChangedAt"`
 	CreatedAt         time.Time      `json:"createdAt"`
 	UpdatedAt         sql.NullTime   `json:"updatedAt"`
@@ -103,13 +104,13 @@ type User struct {
 
 type UserRole struct {
 	ID       int64         `json:"id"`
-	UserID   sql.NullInt64 `json:"userID"`
-	RoleID   sql.NullInt64 `json:"roleID"`
+	UserID   int64         `json:"userID"`
+	RoleID   int64         `json:"roleID"`
 	SchoolID sql.NullInt64 `json:"schoolID"`
 }
 
 type UserRoleClass struct {
-	ID         int64         `json:"id"`
-	UserRoleID sql.NullInt64 `json:"userRoleID"`
-	ClassID    sql.NullInt64 `json:"classID"`
+	ID         int64 `json:"id"`
+	UserRoleID int64 `json:"userRoleID"`
+	ClassID    int64 `json:"classID"`
 }

@@ -2,12 +2,13 @@ CREATE TABLE "User" (
                         "id" bigserial PRIMARY KEY,
                         "email" varchar UNIQUE NOT NULL,
                         "password" varchar NOT NULL,
+                        "totp_secret" varchar NOT NULL,
                         "last_name" varchar NOT NULL,
                         "first_name" varchar NOT NULL,
                         "gender" varchar NOT NULL,
                         "phone_number" varchar,
                         "domicile" varchar,
-                        "birth_date" date NOT NULL,
+                        "birth_date" date,
                         "password_changed_at" timestamp NOT NULL DEFAULT '0001-01-01 00:00:00',
                         "created_at" timestamp NOT NULL DEFAULT (now()),
                         "updated_at" timestamp
@@ -21,15 +22,15 @@ CREATE TABLE "Role" (
 
 CREATE TABLE "UserRoles" (
                              "id" bigserial PRIMARY KEY,
-                             "user_id" bigint,
-                             "role_id" bigint,
+                             "user_id" bigint NOT NULL,
+                             "role_id" bigint NOT NULL,
                              "school_id" bigint
 );
 
 CREATE TABLE "UserRoleClass" (
                                  "id" bigserial PRIMARY KEY,
-                                 "user_role_id" bigint,
-                                 "class_id" bigint
+                                 "user_role_id" bigint NOT NULL,
+                                 "class_id" bigint NOT NULL
 );
 
 CREATE TABLE "School" (
@@ -171,3 +172,6 @@ ALTER TABLE "Marks" ADD FOREIGN KEY ("updated_by") REFERENCES "UserRoles" ("id")
 ALTER TABLE "Semester" ADD FOREIGN KEY ("created_by") REFERENCES "UserRoles" ("id");
 
 ALTER TABLE "Semester" ADD FOREIGN KEY ("updated_by") REFERENCES "UserRoles" ("id");
+
+INSERT INTO "Role"(name) VALUES ('Admin'), ('Director'),  ('School_Manager'),
+                                ('Head_Teacher'),  ('Teacher'), ('Student') ;

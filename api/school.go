@@ -2,32 +2,24 @@ package api
 
 import (
 	"database/sql"
-	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
+	"github.com/EliriaT/SchoolAppApi/api/token"
+	"github.com/EliriaT/SchoolAppApi/service"
+	"github.com/EliriaT/SchoolAppApi/service/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	"net/http"
 )
 
-type createSchoolRequest struct {
-	Name string `json:"name" binding:"required"`
-}
-
 // in the handler the authorization is checked, only the admin user can create a school
 func (server *Server) createSchool(ctx *gin.Context) {
-	var req createSchoolRequest
+	var req dto.CreateSchoolRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	//here we have access to the payload from the token and we check if the user is authorized to create a school
-	//authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	//if authPayload.Role != token.Admin {
-	//	err := errors.New("Not authorized for this action")
-	//	ctx.JSON(http.StatusUnauthorized, errorResponse(err))
-	//}
-
-	school, err := server.store.CreateSchool(ctx, req.Name)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	response, err := server.service.CreateSchool(ctx, authPayload, req)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
@@ -35,64 +27,62 @@ func (server *Server) createSchool(ctx *gin.Context) {
 			case "foreign_key_violation", "unique_violation":
 				ctx.JSON(http.StatusForbidden, errorResponse(err))
 				return
-			}
 
+			case service.ErrUnAuthorized.Error():
+				ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+				return
+			}
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, school)
-}
-
-type getSchoolRequest struct {
-	ID int64 `uri:"id" binding:"required,min=1"`
+	ctx.JSON(http.StatusOK, response)
 }
 
 // only a school manager can get its school, should not be from Id, but from userid that is in the token payload
 func (server *Server) getSchoolbyId(ctx *gin.Context) {
-	var req getSchoolRequest
+	var req dto.GetSchoolRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	school, err := server.store.GetSchoolbyId(ctx, req.ID)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	school, err := server.service.GetSchoolByID(ctx, authPayload, req)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
+		} else if err == service.ErrUnAuthorized {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			return
 		}
+
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	//school = db.School{}
 
 	ctx.JSON(http.StatusOK, school)
 }
 
-type listSchoolRequest struct {
-	PageID   int32 `form:"page_id" binding:"required,min=1"`
-	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
-}
-
 // only the admin can list schools
 func (server *Server) listSchools(ctx *gin.Context) {
-	var req listSchoolRequest
+	var req dto.ListSchoolRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	arg := db.ListSchoolsParams{
-		Limit:  req.PageSize,
-		Offset: (req.PageID - 1) * req.PageSize,
-	}
-
-	school, err := server.store.ListSchools(ctx, arg)
-
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	response, err := server.service.ListSchools(ctx, authPayload, req)
 	if err != nil {
+		if err == service.ErrUnAuthorized {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, school)
+
+	ctx.JSON(http.StatusOK, response)
 }

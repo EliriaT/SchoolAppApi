@@ -24,3 +24,7 @@ UPDATE  "Marks"
 SET  mark = 0, is_absent = true,updated_at = now()
 where id = $1
 RETURNING *;
+
+-- name: DeleteMark :exec
+DELETE FROM "Marks"
+WHERE id = $1;

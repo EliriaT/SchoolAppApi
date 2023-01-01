@@ -1,0 +1,67 @@
+package dto
+
+import (
+	"database/sql"
+	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
+	"time"
+)
+
+// When the User is created, if it is admin, it will indicate the school of the director/manager. Otherwise, the school is taken from the token.
+// The class is indicated only for students. Teachers and Head Teachers are assigned separately.
+type CreateUserRequest struct {
+	Email       string    `json:"email" binding:"required,email"`
+	Password    string    `json:"password" binding:"required,min=6"`
+	LastName    string    `json:"lastName" binding:"required,alpha"`
+	FirstName   string    `json:"firstName"  binding:"required,alpha"`
+	Gender      string    `json:"gender" binding:"required,oneof=F M"`
+	PhoneNumber string    `json:"phoneNumber" binding:"required,e164"`
+	Domicile    string    `json:"domicile"`
+	BirthDate   time.Time `json:"birthDate" binding:"required" time_format:"2006-01-02"`
+	SchoolID    int64     `json:"school"`
+	RoleID      int64     `json:"role_id" binding:"required"`
+	ClassID     int64     `json:"class_id"`
+}
+
+type UserResponse struct {
+	ID                int64          `json:"id"`
+	Email             string         `json:"email"`
+	TOTPSecret        string         `json:"authentificator_secret,omitempty"`
+	Qrcode            string         `json:"qrcode,omitempty"`
+	LastName          string         `json:"lastName"`
+	FirstName         string         `json:"firstName"`
+	Gender            string         `json:"gender"`
+	PhoneNumber       sql.NullString `json:"phoneNumber"`
+	Domicile          sql.NullString `json:"domicile"`
+	BirthDate         sql.NullTime   `json:"birthDate"`
+	PasswordChangedAt time.Time      `json:"passwordChangedAt"`
+	CreatedAt         time.Time      `json:"createdAt"`
+	UserSchool        int64          `json:"user_school,omitempty"`
+	UserRole          int64          `json:"user_role,omitempty"`
+	UserClass         int64          `json:"user_class,omitempty"`
+}
+
+func NewUserResponse(user db.User) UserResponse {
+
+	return UserResponse{
+		ID:                user.ID,
+		Email:             user.Email,
+		LastName:          user.LastName,
+		FirstName:         user.FirstName,
+		Gender:            user.Gender,
+		PhoneNumber:       user.PhoneNumber,
+		Domicile:          user.Domicile,
+		BirthDate:         user.BirthDate,
+		PasswordChangedAt: user.PasswordChangedAt,
+		CreatedAt:         user.CreatedAt,
+	}
+}
+
+type LoginUserRequest struct {
+	Email    string `json:"email" form:"email" binding:"required,email"`
+	Password string `json:"password" form:"password" binding:"required,min=6"`
+}
+
+type LoginUserResponse struct {
+	AccessToken string `json:"access_token"`
+	User        UserResponse
+}

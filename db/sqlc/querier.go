@@ -20,6 +20,7 @@ type Querier interface {
 	CreateSchool(ctx context.Context, name string) (School, error)
 	CreateSemester(ctx context.Context, arg CreateSemesterParams) (Semester, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteMark(ctx context.Context, id int64) error
 	DeleteSchool(ctx context.Context, id int64) error
 	DeleteUser(ctx context.Context, id int64) error
 	GetClassById(ctx context.Context, id int64) (Class, error)
@@ -27,7 +28,7 @@ type Querier interface {
 	GetCourseMarks(ctx context.Context, courseID sql.NullInt64) (Mark, error)
 	GetCurrentSemester(ctx context.Context) (Semester, error)
 	GetLessonsOfCourse(ctx context.Context, courseID sql.NullInt64) (Lesson, error)
-	GetRolebyName(ctx context.Context, name string) (Role, error)
+	GetRolebyId(ctx context.Context, id int64) (Role, error)
 	GetRoles(ctx context.Context) ([]Role, error)
 	GetSchoolbyId(ctx context.Context, id int64) (School, error)
 	GetSchoolbyName(ctx context.Context, name string) (School, error)
@@ -35,8 +36,8 @@ type Querier interface {
 	GetSemesters(ctx context.Context, arg GetSemestersParams) (Semester, error)
 	GetStudentCourseMarks(ctx context.Context, arg GetStudentCourseMarksParams) (Mark, error)
 	GetTeacherSchedule(ctx context.Context, teacherID sql.NullInt64) (GetTeacherScheduleRow, error)
-	GetUserClassByUserRoleId(ctx context.Context, userRoleID sql.NullInt64) (UserRoleClass, error)
-	GetUserRoleByUserId(ctx context.Context, userID sql.NullInt64) (UserRole, error)
+	GetUserClassByUserRoleId(ctx context.Context, userRoleID int64) (UserRoleClass, error)
+	GetUserRoleByUserId(ctx context.Context, userID int64) ([]UserRole, error)
 	GetUserbyEmail(ctx context.Context, email string) (User, error)
 	GetUserbyId(ctx context.Context, id int64) (User, error)
 	ListAllClasses(ctx context.Context, arg ListAllClassesParams) ([]Class, error)
