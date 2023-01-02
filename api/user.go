@@ -6,6 +6,7 @@ import (
 	"github.com/EliriaT/SchoolAppApi/service"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
@@ -23,17 +24,24 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	response, err := server.service.Register(ctx, authPayload, req)
 	if err != nil {
-
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				return
+			}
+		}
 		switch err.Error() {
-		case "unique_violation":
-			ctx.JSON(http.StatusForbidden, errorResponse(err))
-			return
 		case service.ErrBadRequest.Error():
 			ctx.JSON(http.StatusBadRequest, errorResponse(err))
 			return
 
 		case sql.ErrNoRows.Error():
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+
+		case service.ErrUnAuthorized.Error():
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		default:
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))

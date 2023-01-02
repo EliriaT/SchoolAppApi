@@ -23,18 +23,18 @@ type CreateUserRequest struct {
 }
 
 type UserResponse struct {
-	ID                int64          `json:"id"`
-	Email             string         `json:"email"`
+	ID                int64          `json:"id,omitempty"`
+	Email             string         `json:"email,omitempty"`
 	TOTPSecret        string         `json:"authentificator_secret,omitempty"`
 	Qrcode            string         `json:"qrcode,omitempty"`
 	LastName          string         `json:"lastName"`
 	FirstName         string         `json:"firstName"`
-	Gender            string         `json:"gender"`
-	PhoneNumber       sql.NullString `json:"phoneNumber"`
-	Domicile          sql.NullString `json:"domicile"`
-	BirthDate         sql.NullTime   `json:"birthDate"`
-	PasswordChangedAt time.Time      `json:"passwordChangedAt"`
-	CreatedAt         time.Time      `json:"createdAt"`
+	Gender            string         `json:"gender,omitempty"`
+	PhoneNumber       sql.NullString `json:"phoneNumber,omitempty"`
+	Domicile          sql.NullString `json:"domicile,omitempty"`
+	BirthDate         sql.NullTime   `json:"birthDate,omitempty"`
+	PasswordChangedAt time.Time      `json:"passwordChangedAt,omitempty"`
+	CreatedAt         time.Time      `json:"createdAt,omitempty"`
 	UserSchool        int64          `json:"user_school,omitempty"`
 	UserRole          int64          `json:"user_role,omitempty"`
 	UserClass         int64          `json:"user_class,omitempty"`

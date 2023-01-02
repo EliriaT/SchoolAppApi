@@ -303,5 +303,5 @@ func NewUserService(database db.Store, mapRoles map[string]db.Role) UserService 
 
 	return &userService{db: database, roles: mapRoles,
 		RolesService: NewRolesService(database),
-		ClassService: NewClassService(database)}
+		ClassService: NewClassService(database, mapRoles)}
 }

@@ -68,6 +68,23 @@ func (q *Queries) GetUserClassByUserRoleId(ctx context.Context, userRoleID int64
 	return i, err
 }
 
+const getUserRoleById = `-- name: GetUserRoleById :one
+SELECT id, user_id, role_id, school_id FROM "UserRoles"
+WHERE id = $1
+`
+
+func (q *Queries) GetUserRoleById(ctx context.Context, id int64) (UserRole, error) {
+	row := q.db.QueryRowContext(ctx, getUserRoleById, id)
+	var i UserRole
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.RoleID,
+		&i.SchoolID,
+	)
+	return i, err
+}
+
 const getUserRoleByUserId = `-- name: GetUserRoleByUserId :many
 SELECT id, user_id, role_id, school_id FROM "UserRoles"
 WHERE user_id = $1

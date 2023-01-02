@@ -58,7 +58,7 @@ CREATE TABLE "Course" (
 CREATE TABLE "Class" (
                          "id" bigserial PRIMARY KEY,
                          "name" varchar NOT NULL,
-                         "head_teacher" bigint,
+                         "head_teacher" bigint NOT NULL,
                          "created_by" bigint,
                          "updated_by" bigint,
                          "created_at" timestamp DEFAULT (now()),

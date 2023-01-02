@@ -27,6 +27,7 @@ func CheckRolePresence(roles []int64, checkRole int64) bool {
 type RolesService interface {
 	//GetRoles(ctx context.Context, req dto.CreateSchoolRequest) (dto.SchoolResponse, error)
 	AddUserRole(ctx context.Context, userID int64, roleID int64, schoolID int64) (db.UserRole, error)
+	GetUserFromUserRoleID(ctx context.Context, userRoleID int64) (db.User, error)
 }
 
 type roleService struct {
@@ -42,6 +43,15 @@ func (rs *roleService) AddUserRole(ctx context.Context, userID int64, roleID int
 		}}
 	userRole, err := rs.db.CreateRoleForUser(ctx, args)
 	return userRole, err
+}
+
+func (rs *roleService) GetUserFromUserRoleID(ctx context.Context, userRoleID int64) (db.User, error) {
+	userRole, err := rs.db.GetUserRoleById(ctx, userRoleID)
+	if err != nil {
+		return db.User{}, err
+	}
+	user, err := rs.db.GetUserbyId(ctx, userRole.UserID)
+	return user, err
 }
 
 func NewRolesService(database db.Store) RolesService {

@@ -8,11 +8,15 @@ import (
 type Service interface {
 	UserService
 	SchoolService
+	ClassService
+	RolesService
 }
 
 type ServerService struct {
 	UserService
 	SchoolService
+	ClassService
+	RolesService
 }
 
 func NewServerService(database db.Store) (Service, error) {
@@ -27,5 +31,7 @@ func NewServerService(database db.Store) (Service, error) {
 	}
 
 	return &ServerService{UserService: NewUserService(database, mapRoles),
-		SchoolService: NewSchoolService(database)}, err
+		SchoolService: NewSchoolService(database, mapRoles),
+		RolesService:  NewRolesService(database),
+		ClassService:  NewClassService(database, mapRoles)}, err
 }

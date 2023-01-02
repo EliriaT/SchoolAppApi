@@ -37,11 +37,18 @@ func (server *Server) setupRouter() {
 	router.POST("/users", authMiddleware(server.tokenMaker), server.createUser)
 	router.POST("/users/login", server.loginUser)
 
-	authRoutes := router.Group("/schools").Use(authMiddleware(server.tokenMaker))
+	schoolRoutes := router.Group("/schools").Use(authMiddleware(server.tokenMaker))
 
-	authRoutes.POST("", server.createSchool)
-	authRoutes.GET("/:id", server.getSchoolbyId)
-	authRoutes.GET("", server.listSchools)
+	schoolRoutes.POST("", server.createSchool)
+	schoolRoutes.GET("/:id", server.getSchoolbyId)
+	schoolRoutes.GET("", server.listSchools)
+
+	classRoutes := router.Group("/class").Use(authMiddleware(server.tokenMaker))
+
+	classRoutes.POST("", server.createClass)
+	classRoutes.GET("/:id", server.getClassbyId)
+	classRoutes.GET("", server.getClass)
+	classRoutes.PUT("", server.changeHeadTeacherClass)
 
 	server.router = router
 }

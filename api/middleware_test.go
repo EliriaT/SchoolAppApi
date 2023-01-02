@@ -23,7 +23,7 @@ func addAuthorization(
 	email string,
 	duration time.Duration,
 ) {
-	tokenT, err := tokenMaker.CreateToken(email, []int64{seed.RandomInt(1, 3), seed.RandomInt(1, 3)}, seed.RandomInt(1, 100), seed.RandomInt(1, 100), seed.RandomInt(1, 100), duration)
+	tokenT, err := tokenMaker.CreateToken(email, []int64{seed.RandomInt(1, 2), seed.RandomInt(1, 2)}, seed.RandomInt(1, 1), 0, 1, duration)
 	require.NoError(t, err)
 
 	authorizationHeader := fmt.Sprintf("%s %s", authorizationType, tokenT)

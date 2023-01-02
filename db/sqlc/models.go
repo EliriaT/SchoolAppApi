@@ -12,7 +12,7 @@ import (
 type Class struct {
 	ID          int64         `json:"id"`
 	Name        string        `json:"name"`
-	HeadTeacher sql.NullInt64 `json:"headTeacher"`
+	HeadTeacher int64         `json:"headTeacher"`
 	CreatedBy   sql.NullInt64 `json:"createdBy"`
 	UpdatedBy   sql.NullInt64 `json:"updatedBy"`
 	CreatedAt   sql.NullTime  `json:"createdAt"`

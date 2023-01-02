@@ -9,6 +9,10 @@ $1,$2,$3
 SELECT * FROM "UserRoles"
 WHERE user_id = $1;
 
+-- name: GetUserRoleById :one
+SELECT * FROM "UserRoles"
+WHERE id = $1;
+
 -- name: AddUserToClass :one
 INSERT INTO "UserRoleClass"(
     user_role_id,class_id
