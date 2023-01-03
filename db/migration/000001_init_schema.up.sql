@@ -177,3 +177,4 @@ INSERT INTO "Role"(name) VALUES ('Admin'), ('Director'),  ('School_Manager'),
                                 ('Head_Teacher'),  ('Teacher'), ('Student') ;
 
 ALTER TABLE "Class" ADD CONSTRAINT "unique_classes" UNIQUE ("name", "head_teacher");
+ALTER TABLE "UserRoles" ADD CONSTRAINT "unique_roles_for_users" UNIQUE ("user_id", "role_id", "school_id");
