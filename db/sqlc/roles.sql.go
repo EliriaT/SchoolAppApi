@@ -67,13 +67,13 @@ func (q *Queries) CreateRoles(ctx context.Context, arg CreateRolesParams) ([]Rol
 	return items, nil
 }
 
-const getRolebyName = `-- name: GetRolebyName :one
+const getRolebyId = `-- name: GetRolebyId :one
 SELECT id, name FROM "Role"
-WHERE name = $1 LIMIT 1
+WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetRolebyName(ctx context.Context, name string) (Role, error) {
-	row := q.db.QueryRowContext(ctx, getRolebyName, name)
+func (q *Queries) GetRolebyId(ctx context.Context, id int64) (Role, error) {
+	row := q.db.QueryRowContext(ctx, getRolebyId, id)
 	var i Role
 	err := row.Scan(&i.ID, &i.Name)
 	return i, err

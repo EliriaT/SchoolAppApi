@@ -19,8 +19,8 @@ INSERT INTO "Class"(
 `
 
 type CreateClassParams struct {
-	Name        string        `json:"name"`
-	HeadTeacher sql.NullInt64 `json:"headTeacher"`
+	Name        string `json:"name"`
+	HeadTeacher int64  `json:"headTeacher"`
 }
 
 func (q *Queries) CreateClass(ctx context.Context, arg CreateClassParams) (Class, error) {
@@ -58,20 +58,66 @@ func (q *Queries) GetClassById(ctx context.Context, id int64) (Class, error) {
 	return i, err
 }
 
+const getClassWithStudents = `-- name: GetClassWithStudents :many
+SELECT email, last_name, first_name, gender, phone_number,domicile,birth_date, role_id FROM "Class"
+INNER JOIN "UserRoleClass"
+ON  "Class".id = "UserRoleClass".class_id AND "Class".id = $1
+INNER JOIN "UserRoles"
+on "UserRoles".id = "UserRoleClass".user_role_id
+INNER JOIN "User"
+on "User".id = "UserRoles".user_id
+`
+
+type GetClassWithStudentsRow struct {
+	Email       string         `json:"email"`
+	LastName    string         `json:"lastName"`
+	FirstName   string         `json:"firstName"`
+	Gender      string         `json:"gender"`
+	PhoneNumber sql.NullString `json:"phoneNumber"`
+	Domicile    sql.NullString `json:"domicile"`
+	BirthDate   sql.NullTime   `json:"birthDate"`
+	RoleID      int64          `json:"roleID"`
+}
+
+func (q *Queries) GetClassWithStudents(ctx context.Context, id int64) ([]GetClassWithStudentsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getClassWithStudents, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetClassWithStudentsRow{}
+	for rows.Next() {
+		var i GetClassWithStudentsRow
+		if err := rows.Scan(
+			&i.Email,
+			&i.LastName,
+			&i.FirstName,
+			&i.Gender,
+			&i.PhoneNumber,
+			&i.Domicile,
+			&i.BirthDate,
+			&i.RoleID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAllClasses = `-- name: ListAllClasses :many
 SELECT id, name, head_teacher, created_by, updated_by, created_at, updated_at FROM "Class"
 ORDER BY name
-LIMIT $1
-OFFSET $2
 `
 
-type ListAllClassesParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-func (q *Queries) ListAllClasses(ctx context.Context, arg ListAllClassesParams) ([]Class, error) {
-	rows, err := q.db.QueryContext(ctx, listAllClasses, arg.Limit, arg.Offset)
+func (q *Queries) ListAllClasses(ctx context.Context) ([]Class, error) {
+	rows, err := q.db.QueryContext(ctx, listAllClasses)
 	if err != nil {
 		return nil, err
 	}
@@ -109,8 +155,8 @@ RETURNING id, name, head_teacher, created_by, updated_by, created_at, updated_at
 `
 
 type UpdateClassHeadTeacherParams struct {
-	ID          int64         `json:"id"`
-	HeadTeacher sql.NullInt64 `json:"headTeacher"`
+	ID          int64 `json:"id"`
+	HeadTeacher int64 `json:"headTeacher"`
 }
 
 func (q *Queries) UpdateClassHeadTeacher(ctx context.Context, arg UpdateClassHeadTeacherParams) (Class, error) {

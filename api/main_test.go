@@ -4,8 +4,10 @@ import (
 	"github.com/EliriaT/SchoolAppApi/config"
 	"github.com/EliriaT/SchoolAppApi/db/seed"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
+	"github.com/EliriaT/SchoolAppApi/service"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -17,7 +19,13 @@ func newTestServer(t *testing.T, store db.Store) *Server {
 		AccessTokenDuration: time.Hour,
 	}
 
-	server, err := NewServer(store, configOb)
+	serverService, err := service.NewServerService(store)
+	if err != nil {
+		log.Fatal("cannot create create service", err)
+	}
+
+	server, err := NewServer(serverService, configOb)
+
 	require.NoError(t, err)
 	return server
 }

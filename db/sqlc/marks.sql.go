@@ -50,6 +50,16 @@ func (q *Queries) CreateMark(ctx context.Context, arg CreateMarkParams) (Mark, e
 	return i, err
 }
 
+const deleteMark = `-- name: DeleteMark :exec
+DELETE FROM "Marks"
+WHERE id = $1
+`
+
+func (q *Queries) DeleteMark(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteMark, id)
+	return err
+}
+
 const getCourseMarks = `-- name: GetCourseMarks :one
 SELECT id, course_id, mark_date, is_absent, mark, student_id, created_by, updated_by, created_at, updated_at FROM "Marks"
 WHERE course_id = $1

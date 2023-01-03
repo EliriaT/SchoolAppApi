@@ -1,11 +1,14 @@
 package api
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/db/seed"
+	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +23,7 @@ func addAuthorization(
 	email string,
 	duration time.Duration,
 ) {
-	tokenT, err := tokenMaker.CreateToken(email, duration)
+	tokenT, err := tokenMaker.CreateToken(email, []int64{seed.RandomInt(1, 2), seed.RandomInt(1, 2)}, seed.RandomInt(1, 1), 0, 1, duration)
 	require.NoError(t, err)
 
 	authorizationHeader := fmt.Sprintf("%s %s", authorizationType, tokenT)
@@ -81,7 +84,13 @@ func TestAuthMiddleware(t *testing.T) {
 		tc := testCases[i]
 
 		t.Run(tc.name, func(t *testing.T) {
-			server := newTestServer(t, nil)
+
+			conn, err := sql.Open("postgres", "postgresql://root:secret@localhost:5432/school?sslmode=disable")
+			if err != nil {
+				log.Fatal("cannot connect to db: ", err)
+			}
+			store := db.NewStore(conn)
+			server := newTestServer(t, store)
 
 			server.router.GET("/auth", authMiddleware(server.tokenMaker), func(ctx *gin.Context) {
 				ctx.JSON(http.StatusOK, gin.H{})

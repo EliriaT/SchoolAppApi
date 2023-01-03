@@ -14,8 +14,8 @@ type PasetoMaker struct {
 }
 
 // CreateToken creates a new token for a specific user with unique email,
-func (p *PasetoMaker) CreateToken(email string, duration time.Duration) (string, error) {
-	payload, err := NewPayload(email, duration)
+func (p *PasetoMaker) CreateToken(email string, role []int64, SchoolID int64, ClassID int64, UserID int64, duration time.Duration) (string, error) {
+	payload, err := NewPayload(email, role, SchoolID, ClassID, UserID, duration)
 	if err != nil {
 		return "", err
 	}

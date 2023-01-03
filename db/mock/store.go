@@ -186,6 +186,20 @@ func (mr *MockStoreMockRecorder) CreateUser(arg0, arg1 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockStore)(nil).CreateUser), arg0, arg1)
 }
 
+// DeleteMark mocks base method.
+func (m *MockStore) DeleteMark(arg0 context.Context, arg1 int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteMark", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteMark indicates an expected call of DeleteMark.
+func (mr *MockStoreMockRecorder) DeleteMark(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteMark", reflect.TypeOf((*MockStore)(nil).DeleteMark), arg0, arg1)
+}
+
 // DeleteSchool mocks base method.
 func (m *MockStore) DeleteSchool(arg0 context.Context, arg1 int64) error {
 	m.ctrl.T.Helper()
@@ -244,6 +258,21 @@ func (mr *MockStoreMockRecorder) GetClassSchedule(arg0, arg1 interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClassSchedule", reflect.TypeOf((*MockStore)(nil).GetClassSchedule), arg0, arg1)
 }
 
+// GetClassWithStudents mocks base method.
+func (m *MockStore) GetClassWithStudents(arg0 context.Context, arg1 int64) ([]db.GetClassWithStudentsRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClassWithStudents", arg0, arg1)
+	ret0, _ := ret[0].([]db.GetClassWithStudentsRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClassWithStudents indicates an expected call of GetClassWithStudents.
+func (mr *MockStoreMockRecorder) GetClassWithStudents(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClassWithStudents", reflect.TypeOf((*MockStore)(nil).GetClassWithStudents), arg0, arg1)
+}
+
 // GetCourseMarks mocks base method.
 func (m *MockStore) GetCourseMarks(arg0 context.Context, arg1 sql.NullInt64) (db.Mark, error) {
 	m.ctrl.T.Helper()
@@ -289,19 +318,19 @@ func (mr *MockStoreMockRecorder) GetLessonsOfCourse(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLessonsOfCourse", reflect.TypeOf((*MockStore)(nil).GetLessonsOfCourse), arg0, arg1)
 }
 
-// GetRolebyName mocks base method.
-func (m *MockStore) GetRolebyName(arg0 context.Context, arg1 string) (db.Role, error) {
+// GetRolebyId mocks base method.
+func (m *MockStore) GetRolebyId(arg0 context.Context, arg1 int64) (db.Role, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRolebyName", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetRolebyId", arg0, arg1)
 	ret0, _ := ret[0].(db.Role)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetRolebyName indicates an expected call of GetRolebyName.
-func (mr *MockStoreMockRecorder) GetRolebyName(arg0, arg1 interface{}) *gomock.Call {
+// GetRolebyId indicates an expected call of GetRolebyId.
+func (mr *MockStoreMockRecorder) GetRolebyId(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRolebyName", reflect.TypeOf((*MockStore)(nil).GetRolebyName), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRolebyId", reflect.TypeOf((*MockStore)(nil).GetRolebyId), arg0, arg1)
 }
 
 // GetRoles mocks base method.
@@ -410,7 +439,7 @@ func (mr *MockStoreMockRecorder) GetTeacherSchedule(arg0, arg1 interface{}) *gom
 }
 
 // GetUserClassByUserRoleId mocks base method.
-func (m *MockStore) GetUserClassByUserRoleId(arg0 context.Context, arg1 sql.NullInt64) (db.UserRoleClass, error) {
+func (m *MockStore) GetUserClassByUserRoleId(arg0 context.Context, arg1 int64) (db.UserRoleClass, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserClassByUserRoleId", arg0, arg1)
 	ret0, _ := ret[0].(db.UserRoleClass)
@@ -424,11 +453,26 @@ func (mr *MockStoreMockRecorder) GetUserClassByUserRoleId(arg0, arg1 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserClassByUserRoleId", reflect.TypeOf((*MockStore)(nil).GetUserClassByUserRoleId), arg0, arg1)
 }
 
+// GetUserRoleById mocks base method.
+func (m *MockStore) GetUserRoleById(arg0 context.Context, arg1 int64) (db.UserRole, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserRoleById", arg0, arg1)
+	ret0, _ := ret[0].(db.UserRole)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserRoleById indicates an expected call of GetUserRoleById.
+func (mr *MockStoreMockRecorder) GetUserRoleById(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserRoleById", reflect.TypeOf((*MockStore)(nil).GetUserRoleById), arg0, arg1)
+}
+
 // GetUserRoleByUserId mocks base method.
-func (m *MockStore) GetUserRoleByUserId(arg0 context.Context, arg1 sql.NullInt64) (db.UserRole, error) {
+func (m *MockStore) GetUserRoleByUserId(arg0 context.Context, arg1 int64) ([]db.UserRole, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserRoleByUserId", arg0, arg1)
-	ret0, _ := ret[0].(db.UserRole)
+	ret0, _ := ret[0].([]db.UserRole)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -470,18 +514,18 @@ func (mr *MockStoreMockRecorder) GetUserbyId(arg0, arg1 interface{}) *gomock.Cal
 }
 
 // ListAllClasses mocks base method.
-func (m *MockStore) ListAllClasses(arg0 context.Context, arg1 db.ListAllClassesParams) ([]db.Class, error) {
+func (m *MockStore) ListAllClasses(arg0 context.Context) ([]db.Class, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAllClasses", arg0, arg1)
+	ret := m.ctrl.Call(m, "ListAllClasses", arg0)
 	ret0, _ := ret[0].([]db.Class)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListAllClasses indicates an expected call of ListAllClasses.
-func (mr *MockStoreMockRecorder) ListAllClasses(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) ListAllClasses(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllClasses", reflect.TypeOf((*MockStore)(nil).ListAllClasses), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAllClasses", reflect.TypeOf((*MockStore)(nil).ListAllClasses), arg0)
 }
 
 // ListCoursesOfClass mocks base method.

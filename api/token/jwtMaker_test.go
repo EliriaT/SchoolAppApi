@@ -18,7 +18,7 @@ func TestJWTMaker(t *testing.T) {
 	issuedAt := time.Now()
 	expiredAt := issuedAt.Add(duration)
 
-	token, err := maker.CreateToken(email, duration)
+	token, err := maker.CreateToken(email, []int64{seed.RandomInt(1, 3), seed.RandomInt(1, 3)}, seed.RandomInt(1, 100), seed.RandomInt(1, 100), seed.RandomInt(1, 100), duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -36,7 +36,7 @@ func TestExpiredJWTToken(t *testing.T) {
 	maker, err := NewJWTMaker(seed.RandomString(32))
 	require.NoError(t, err)
 
-	token, err := maker.CreateToken(seed.RandomEmail(), -time.Minute)
+	token, err := maker.CreateToken(seed.RandomEmail(), []int64{seed.RandomInt(1, 3), seed.RandomInt(1, 3)}, seed.RandomInt(1, 100), seed.RandomInt(1, 100), seed.RandomInt(1, 100), -time.Minute)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 
@@ -48,7 +48,7 @@ func TestExpiredJWTToken(t *testing.T) {
 
 // TestInvalidJWTTokenAlgNone tests if vulnerable to token forgery by chaning alg in header
 func TestInvalidJWTTokenAlgNone(t *testing.T) {
-	payload, err := NewPayload(seed.RandomEmail(), time.Minute)
+	payload, err := NewPayload(seed.RandomEmail(), []int64{seed.RandomInt(1, 3), seed.RandomInt(1, 3)}, seed.RandomInt(1, 100), seed.RandomInt(1, 100), seed.RandomInt(1, 100), time.Minute)
 	require.NoError(t, err)
 
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodNone, payload)

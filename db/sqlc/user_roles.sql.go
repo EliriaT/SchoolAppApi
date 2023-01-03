@@ -19,8 +19,8 @@ INSERT INTO "UserRoleClass"(
 `
 
 type AddUserToClassParams struct {
-	UserRoleID sql.NullInt64 `json:"userRoleID"`
-	ClassID    sql.NullInt64 `json:"classID"`
+	UserRoleID int64 `json:"userRoleID"`
+	ClassID    int64 `json:"classID"`
 }
 
 func (q *Queries) AddUserToClass(ctx context.Context, arg AddUserToClassParams) (UserRoleClass, error) {
@@ -39,8 +39,8 @@ $1,$2,$3
 `
 
 type CreateRoleForUserParams struct {
-	UserID   sql.NullInt64 `json:"userID"`
-	RoleID   sql.NullInt64 `json:"roleID"`
+	UserID   int64         `json:"userID"`
+	RoleID   int64         `json:"roleID"`
 	SchoolID sql.NullInt64 `json:"schoolID"`
 }
 
@@ -61,20 +61,20 @@ SELECT id, user_role_id, class_id FROM "UserRoleClass"
 WHERE user_role_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserClassByUserRoleId(ctx context.Context, userRoleID sql.NullInt64) (UserRoleClass, error) {
+func (q *Queries) GetUserClassByUserRoleId(ctx context.Context, userRoleID int64) (UserRoleClass, error) {
 	row := q.db.QueryRowContext(ctx, getUserClassByUserRoleId, userRoleID)
 	var i UserRoleClass
 	err := row.Scan(&i.ID, &i.UserRoleID, &i.ClassID)
 	return i, err
 }
 
-const getUserRoleByUserId = `-- name: GetUserRoleByUserId :one
+const getUserRoleById = `-- name: GetUserRoleById :one
 SELECT id, user_id, role_id, school_id FROM "UserRoles"
-WHERE user_id = $1 LIMIT 1
+WHERE id = $1
 `
 
-func (q *Queries) GetUserRoleByUserId(ctx context.Context, userID sql.NullInt64) (UserRole, error) {
-	row := q.db.QueryRowContext(ctx, getUserRoleByUserId, userID)
+func (q *Queries) GetUserRoleById(ctx context.Context, id int64) (UserRole, error) {
+	row := q.db.QueryRowContext(ctx, getUserRoleById, id)
 	var i UserRole
 	err := row.Scan(
 		&i.ID,
@@ -83,4 +83,37 @@ func (q *Queries) GetUserRoleByUserId(ctx context.Context, userID sql.NullInt64)
 		&i.SchoolID,
 	)
 	return i, err
+}
+
+const getUserRoleByUserId = `-- name: GetUserRoleByUserId :many
+SELECT id, user_id, role_id, school_id FROM "UserRoles"
+WHERE user_id = $1
+`
+
+func (q *Queries) GetUserRoleByUserId(ctx context.Context, userID int64) ([]UserRole, error) {
+	rows, err := q.db.QueryContext(ctx, getUserRoleByUserId, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []UserRole{}
+	for rows.Next() {
+		var i UserRole
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.RoleID,
+			&i.SchoolID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

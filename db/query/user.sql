@@ -1,8 +1,8 @@
 -- name: CreateUser :one
 INSERT INTO "User"(
-    email, password, last_name, first_name, gender, phone_number, domicile, birth_date
+    email, password, totp_secret ,last_name, first_name, gender, phone_number, domicile, birth_date
 )VALUES (
-            $1,$2,$3,$4,$5,$6,$7,$8
+            $1,$2,$3,$4,$5,$6,$7,$8, $9
         ) RETURNING *;
 
 -- name: GetUserbyId :one

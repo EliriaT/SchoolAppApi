@@ -5,9 +5,13 @@ user_id,role_id,school_id
 $1,$2,$3
 ) RETURNING *;
 
--- name: GetUserRoleByUserId :one
+-- name: GetUserRoleByUserId :many
 SELECT * FROM "UserRoles"
-WHERE user_id = $1 LIMIT 1;
+WHERE user_id = $1;
+
+-- name: GetUserRoleById :one
+SELECT * FROM "UserRoles"
+WHERE id = $1;
 
 -- name: AddUserToClass :one
 INSERT INTO "UserRoleClass"(
