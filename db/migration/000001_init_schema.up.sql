@@ -24,7 +24,7 @@ CREATE TABLE "UserRoles" (
                              "id" bigserial PRIMARY KEY,
                              "user_id" bigint NOT NULL,
                              "role_id" bigint NOT NULL,
-                             "school_id" bigint
+                             "school_id" bigint NOT NULL
 );
 
 CREATE TABLE "UserRoleClass" (
@@ -57,8 +57,8 @@ CREATE TABLE "Course" (
 
 CREATE TABLE "Class" (
                          "id" bigserial PRIMARY KEY,
-                         "name" varchar NOT NULL,
-                         "head_teacher" bigint NOT NULL,
+                         "name" varchar  NOT NULL,
+                         "head_teacher" bigint UNIQUE NOT NULL,
                          "created_by" bigint,
                          "updated_by" bigint,
                          "created_at" timestamp DEFAULT (now()),
@@ -175,3 +175,6 @@ ALTER TABLE "Semester" ADD FOREIGN KEY ("updated_by") REFERENCES "UserRoles" ("i
 
 INSERT INTO "Role"(name) VALUES ('Admin'), ('Director'),  ('School_Manager'),
                                 ('Head_Teacher'),  ('Teacher'), ('Student') ;
+
+ALTER TABLE "Class" ADD CONSTRAINT "unique_classes" UNIQUE ("name", "head_teacher");
+ALTER TABLE "UserRoles" ADD CONSTRAINT "unique_roles_for_users" UNIQUE ("user_id", "role_id", "school_id");

@@ -54,7 +54,9 @@ type Querier interface {
 	UpdateLessonTimeAndPlace(ctx context.Context, arg UpdateLessonTimeAndPlaceParams) (Lesson, error)
 	UpdateSchool(ctx context.Context, arg UpdateSchoolParams) (School, error)
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) (User, error)
+	UpdateUserHeadTeacherRole(ctx context.Context, arg UpdateUserHeadTeacherRoleParams) (UserRole, error)
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error)
+	UpdateUserRoleClass(ctx context.Context, arg UpdateUserRoleClassParams) (UserRoleClass, error)
 }
 
 var _ Querier = (*Queries)(nil)

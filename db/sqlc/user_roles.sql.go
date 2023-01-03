@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 )
 
 const addUserToClass = `-- name: AddUserToClass :one
@@ -39,9 +38,9 @@ $1,$2,$3
 `
 
 type CreateRoleForUserParams struct {
-	UserID   int64         `json:"userID"`
-	RoleID   int64         `json:"roleID"`
-	SchoolID sql.NullInt64 `json:"schoolID"`
+	UserID   int64 `json:"userID"`
+	RoleID   int64 `json:"roleID"`
+	SchoolID int64 `json:"schoolID"`
 }
 
 func (q *Queries) CreateRoleForUser(ctx context.Context, arg CreateRoleForUserParams) (UserRole, error) {
@@ -116,4 +115,47 @@ func (q *Queries) GetUserRoleByUserId(ctx context.Context, userID int64) ([]User
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUserHeadTeacherRole = `-- name: UpdateUserHeadTeacherRole :one
+UPDATE  "UserRoles"
+SET  user_id = $2
+where id = $1
+RETURNING id, user_id, role_id, school_id
+`
+
+type UpdateUserHeadTeacherRoleParams struct {
+	ID     int64 `json:"id"`
+	UserID int64 `json:"userID"`
+}
+
+func (q *Queries) UpdateUserHeadTeacherRole(ctx context.Context, arg UpdateUserHeadTeacherRoleParams) (UserRole, error) {
+	row := q.db.QueryRowContext(ctx, updateUserHeadTeacherRole, arg.ID, arg.UserID)
+	var i UserRole
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.RoleID,
+		&i.SchoolID,
+	)
+	return i, err
+}
+
+const updateUserRoleClass = `-- name: UpdateUserRoleClass :one
+UPDATE  "UserRoleClass"
+SET  user_role_id = $2
+where id = $1
+RETURNING id, user_role_id, class_id
+`
+
+type UpdateUserRoleClassParams struct {
+	ID         int64 `json:"id"`
+	UserRoleID int64 `json:"userRoleID"`
+}
+
+func (q *Queries) UpdateUserRoleClass(ctx context.Context, arg UpdateUserRoleClassParams) (UserRoleClass, error) {
+	row := q.db.QueryRowContext(ctx, updateUserRoleClass, arg.ID, arg.UserRoleID)
+	var i UserRoleClass
+	err := row.Scan(&i.ID, &i.UserRoleID, &i.ClassID)
+	return i, err
 }

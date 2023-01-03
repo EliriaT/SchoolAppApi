@@ -23,3 +23,16 @@ INSERT INTO "UserRoleClass"(
 -- name: GetUserClassByUserRoleId :one
 SELECT * FROM "UserRoleClass"
 WHERE user_role_id = $1 LIMIT 1;
+
+-- name: UpdateUserRoleClass :one
+UPDATE  "UserRoleClass"
+SET  user_role_id = $2
+where id = $1
+RETURNING *;
+
+
+-- name: UpdateUserHeadTeacherRole :one
+UPDATE  "UserRoles"
+SET  user_id = $2
+where id = $1
+RETURNING *;

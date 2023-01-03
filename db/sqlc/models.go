@@ -103,10 +103,10 @@ type User struct {
 }
 
 type UserRole struct {
-	ID       int64         `json:"id"`
-	UserID   int64         `json:"userID"`
-	RoleID   int64         `json:"roleID"`
-	SchoolID sql.NullInt64 `json:"schoolID"`
+	ID       int64 `json:"id"`
+	UserID   int64 `json:"userID"`
+	RoleID   int64 `json:"roleID"`
+	SchoolID int64 `json:"schoolID"`
 }
 
 type UserRoleClass struct {

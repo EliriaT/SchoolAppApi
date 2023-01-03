@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 )
 
@@ -36,11 +35,9 @@ type roleService struct {
 
 func (rs *roleService) AddUserRole(ctx context.Context, userID int64, roleID int64, schoolID int64) (db.UserRole, error) {
 	args := db.CreateRoleForUserParams{RoleID: roleID,
-		UserID: userID,
-		SchoolID: sql.NullInt64{
-			Int64: schoolID,
-			Valid: true,
-		}}
+		UserID:   userID,
+		SchoolID: schoolID,
+	}
 	userRole, err := rs.db.CreateRoleForUser(ctx, args)
 	return userRole, err
 }

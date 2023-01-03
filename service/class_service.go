@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
@@ -87,16 +86,35 @@ func (rs *classService) GetClassByID(ctx context.Context, authToken *token.Paylo
 	return response, err
 }
 
+// the id is the userRole ID of the teacher /director / school manager. I should add another user role as Head Teacher, and Add in UserRoleClass the info
 func (rs *classService) CreateClass(ctx context.Context, authToken *token.Payload, req dto.CreateClassRequest) (dto.ClassResponse, error) {
 	if !CheckRolePresence(authToken.Role, rs.roles[Director].ID) && !CheckRolePresence(authToken.Role, rs.roles[SchoolManager].ID) {
 		return dto.ClassResponse{}, ErrUnAuthorized
 	}
 
-	arg := db.CreateClassParams{Name: req.Name, HeadTeacher: req.HeadTeacher}
+	userRole, err := rs.db.GetUserRoleById(ctx, req.HeadTeacher)
+	if err != nil {
+		return dto.ClassResponse{}, err
+	}
+	createUserRoleArg := db.CreateRoleForUserParams{RoleID: rs.roles[HeadTeacher].ID, UserID: userRole.UserID, SchoolID: authToken.SchoolID}
+	createdUserRole, err := rs.db.CreateRoleForUser(ctx, createUserRoleArg)
+	if err != nil {
+		return dto.ClassResponse{}, err
+	}
+
+	// here the role is from teacher, but it anyway maps to the same user
+	arg := db.CreateClassParams{Name: req.Name, HeadTeacher: createdUserRole.ID}
 	class, err := rs.db.CreateClass(ctx, arg)
 	if err != nil {
 		return dto.ClassResponse{}, err
 	}
+
+	addUserClassArgs := db.AddUserToClassParams{ClassID: class.ID, UserRoleID: createdUserRole.ID}
+	_, err = rs.db.AddUserToClass(ctx, addUserClassArgs)
+	if err != nil {
+		return dto.ClassResponse{}, err
+	}
+
 	response := dto.ClassResponse{ID: class.ID,
 		Name:        class.Name,
 		HeadTeacher: class.HeadTeacher}
@@ -147,7 +165,7 @@ func (rs *classService) GetClass(ctx context.Context, authToken *token.Payload) 
 		pupils := make([]dto.UserResponse, 0, 35)
 		for _, s := range students {
 			if s.RoleID == rs.roles[HeadTeacher].ID {
-				headTeacherName = s.FirstName + s.LastName
+				headTeacherName = s.FirstName + " " + s.LastName
 				continue
 			}
 			var student dto.UserResponse
@@ -182,22 +200,33 @@ func (rs *classService) GetClass(ctx context.Context, authToken *token.Payload) 
 
 		return response, err
 	}
-	return []dto.ClassResponse{}, errors.New("Unknown case")
+	//Happens if it is a teacher
+	return []dto.ClassResponse{}, ErrUnAuthorized
 }
 
+// TODO update old user_role_class, delete user role
+// TODO CHECK THAT REQ.HEADTEACHER IS NOT STUDENT
 func (rs *classService) ChangeHeadTeacherClass(ctx context.Context, authToken *token.Payload, req dto.ChangeHeadTeacherRequest) (dto.ClassResponse, error) {
 	if !CheckRolePresence(authToken.Role, rs.roles[Director].ID) && !CheckRolePresence(authToken.Role, rs.roles[SchoolManager].ID) {
 		return dto.ClassResponse{}, ErrUnAuthorized
 	}
-	arg := db.UpdateClassHeadTeacherParams{
-		HeadTeacher: req.HeadTeacherID,
-		ID:          req.ClassID,
-	}
-	//TODO HERE I SHOULD CHECK THE EXISTENCE OF TEACHER?????????????????????????????????????????????????///
-	class, err := rs.db.UpdateClassHeadTeacher(ctx, arg)
+
+	newTeacherUserRole, err := rs.db.GetUserRoleById(ctx, req.HeadTeacherID)
 	if err != nil {
 		return dto.ClassResponse{}, err
 	}
+
+	class, err := rs.db.GetClassById(ctx, req.ClassID)
+	if err != nil {
+		return dto.ClassResponse{}, err
+	}
+
+	oldHeadTeacherUserRole, err := rs.db.GetUserRoleById(ctx, class.HeadTeacher)
+	_, err = rs.db.UpdateUserHeadTeacherRole(ctx, db.UpdateUserHeadTeacherRoleParams{UserID: newTeacherUserRole.UserID, ID: oldHeadTeacherUserRole.ID})
+	if err != nil {
+		return dto.ClassResponse{}, err
+	}
+
 	response := dto.ClassResponse{
 		ID:          class.ID,
 		Name:        class.Name,
