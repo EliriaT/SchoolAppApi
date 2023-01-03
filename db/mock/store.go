@@ -693,6 +693,21 @@ func (mr *MockStoreMockRecorder) UpdateUserEmail(arg0, arg1 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserEmail", reflect.TypeOf((*MockStore)(nil).UpdateUserEmail), arg0, arg1)
 }
 
+// UpdateUserHeadTeacherRole mocks base method.
+func (m *MockStore) UpdateUserHeadTeacherRole(arg0 context.Context, arg1 db.UpdateUserHeadTeacherRoleParams) (db.UserRole, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserHeadTeacherRole", arg0, arg1)
+	ret0, _ := ret[0].(db.UserRole)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserHeadTeacherRole indicates an expected call of UpdateUserHeadTeacherRole.
+func (mr *MockStoreMockRecorder) UpdateUserHeadTeacherRole(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserHeadTeacherRole", reflect.TypeOf((*MockStore)(nil).UpdateUserHeadTeacherRole), arg0, arg1)
+}
+
 // UpdateUserPassword mocks base method.
 func (m *MockStore) UpdateUserPassword(arg0 context.Context, arg1 db.UpdateUserPasswordParams) (db.User, error) {
 	m.ctrl.T.Helper()
@@ -706,4 +721,19 @@ func (m *MockStore) UpdateUserPassword(arg0 context.Context, arg1 db.UpdateUserP
 func (mr *MockStoreMockRecorder) UpdateUserPassword(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPassword", reflect.TypeOf((*MockStore)(nil).UpdateUserPassword), arg0, arg1)
+}
+
+// UpdateUserRoleClass mocks base method.
+func (m *MockStore) UpdateUserRoleClass(arg0 context.Context, arg1 db.UpdateUserRoleClassParams) (db.UserRoleClass, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateUserRoleClass", arg0, arg1)
+	ret0, _ := ret[0].(db.UserRoleClass)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateUserRoleClass indicates an expected call of UpdateUserRoleClass.
+func (mr *MockStoreMockRecorder) UpdateUserRoleClass(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserRoleClass", reflect.TypeOf((*MockStore)(nil).UpdateUserRoleClass), arg0, arg1)
 }

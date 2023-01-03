@@ -189,7 +189,7 @@ func (s *userService) Login(ctx context.Context, req dto.LoginUserRequest) (resp
 	for _, ur := range userRoles {
 		roles = append(roles, ur.RoleID)
 	}
-	schoolID = userRoles[0].SchoolID.Int64
+	schoolID = userRoles[0].SchoolID
 
 	for i, value := range roles {
 		if value == s.roles[HeadTeacher].ID || value == s.roles[Student].ID {
