@@ -14,14 +14,15 @@ var (
 
 // Payload contains the payload data of the token
 type Payload struct {
-	ID        uuid.UUID `json:"id"`
-	Email     string    `json:"email"`
-	Role      []int64   `json:"role"`
-	SchoolID  int64     `json:"school_id"`
-	ClassID   int64     `json:"class_id"`
-	UserID    int64     `json:"user_id"`
-	IssuedAt  time.Time `json:"issued_at"`
-	ExpiredAt time.Time `json:"expired_at"`
+	ID            uuid.UUID `json:"id"`
+	Email         string    `json:"email"`
+	Role          []int64   `json:"role"`
+	SchoolID      int64     `json:"school_id"`
+	ClassID       int64     `json:"class_id"`
+	UserID        int64     `json:"user_id"`
+	Authenticated bool      `json:"authenticated"`
+	IssuedAt      time.Time `json:"issued_at"`
+	ExpiredAt     time.Time `json:"expired_at"`
 	//jwt.RegisteredClaims
 }
 
@@ -42,14 +43,15 @@ func NewPayload(email string, role []int64, SchoolID int64, ClassID int64, UserI
 
 	// I should have here User ID which is a uuid, and user role
 	payload := &Payload{
-		ID:        tokenId,
-		Email:     email,
-		Role:      role,
-		SchoolID:  SchoolID,
-		ClassID:   ClassID,
-		UserID:    UserID,
-		IssuedAt:  time.Now(),
-		ExpiredAt: time.Now().Add(duration),
+		ID:            tokenId,
+		Email:         email,
+		Role:          role,
+		SchoolID:      SchoolID,
+		ClassID:       ClassID,
+		UserID:        UserID,
+		Authenticated: false,
+		IssuedAt:      time.Now(),
+		ExpiredAt:     time.Now().Add(duration),
 		//RegisteredClaims: jwt.RegisteredClaims{
 		//	ExpiresAt: jwt.NewNumericDate(time.Now().Add(duration)),
 		//	IssuedAt:  jwt.NewNumericDate(time.Now()),

@@ -54,6 +54,17 @@ func (j *JWTMaker) VerifyToken(token string) (*Payload, error) {
 	return payload, nil
 }
 
+// AuthenticateToken marks authentitcated field in the token payload as true, after 2fa is succesful,
+func (j *JWTMaker) AuthenticateToken(payload Payload) (string, error) {
+
+	payload.Authenticated = true
+
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &payload)
+
+	return jwtToken.SignedString([]byte(j.secretKey))
+
+}
+
 // NewJWTMaker creates a new JWTMaker that implements the TokenMaker interface
 func NewJWTMaker(secretKey string) (TokenMaker, error) {
 	if len(secretKey) < minSecretKeySize {

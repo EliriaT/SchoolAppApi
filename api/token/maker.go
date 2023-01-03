@@ -8,4 +8,7 @@ type TokenMaker interface {
 
 	//VerifyToken checks if the tocken is valid, or not
 	VerifyToken(token string) (*Payload, error)
+
+	// AuthentificateToken marks authentitcated field in the token payload as true, after 2fa is succesful,
+	AuthenticateToken(payload Payload) (string, error)
 }

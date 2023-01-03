@@ -39,6 +39,14 @@ func (p *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 	return payload, nil
 }
 
+// AuthenticateToken marks authentitcated field in the token payload as true, after 2fa is succesful,
+func (p *PasetoMaker) AuthenticateToken(payload Payload) (string, error) {
+
+	payload.Authenticated = true
+
+	return p.paseto.Encrypt(p.symmetricKey, payload, nil)
+}
+
 // NewPasetoMaker creates a new PasetoMaker
 func NewPasetoMaker(symmetricKey string) (TokenMaker, error) {
 	if len(symmetricKey) != chacha20poly1305.KeySize {

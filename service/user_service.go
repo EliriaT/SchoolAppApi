@@ -26,7 +26,7 @@ type UserService interface {
 	Register(ctx context.Context, token *token.Payload, req dto.CreateUserRequest) (dto.UserResponse, error)
 	Login(ctx context.Context, req dto.LoginUserRequest) (response dto.LoginUserResponse, roles []int64, schoolID int64, ClassID int64, err error)
 	CreateAdmin() error
-	//CheckTOTP(username, totp string) (db.User, error)
+	CheckTOTP(ctx context.Context, token *token.Payload, req dto.CheckTOTPRequest) (response dto.LoginUserResponse, err error)
 }
 
 type userService struct {
@@ -37,7 +37,7 @@ type userService struct {
 }
 
 // TODO uuid Roles should be hidden by uuid
-// Irina check validity of payload by role, check role existance, etc
+
 func (s *userService) Register(ctx context.Context, authToken *token.Payload, req dto.CreateUserRequest) (dto.UserResponse, error) {
 	// check to see that the role is Admin or Director or School_Manager
 	if !CheckRolePresence(authToken.Role, s.roles[Admin].ID) && !CheckRolePresence(authToken.Role, s.roles[Director].ID) && !CheckRolePresence(authToken.Role, s.roles[SchoolManager].ID) && !CheckRolePresence(authToken.Role, s.roles[HeadTeacher].ID) {
@@ -286,18 +286,20 @@ func (s *userService) CreateAdmin() error {
 	return err
 }
 
-//func (s *userService) CheckTOTP(username, totpToken string) (db.User, error) {
-//	user, err := s.db.GetUser(username)
-//	if err != nil {
-//		return db.User{}, err
-//	}
-//
-//	valid := totp.Validate(totpToken, user.TOTPSecret)
-//	if !valid {
-//		return db.User{}, ErrWrongOTPCode
-//	}
-//	return user, nil
-//}
+func (s *userService) CheckTOTP(ctx context.Context, token *token.Payload, req dto.CheckTOTPRequest) (response dto.LoginUserResponse, err error) {
+	user, err := s.db.GetUserbyId(ctx, token.UserID)
+	if err != nil {
+		return
+	}
+
+	valid := totp.Validate(req.TotpToken, user.TotpSecret)
+	if !valid {
+		err = ErrUnAuthorized
+		return
+	}
+	response = dto.LoginUserResponse{User: dto.NewUserResponse(user)}
+	return
+}
 
 func NewUserService(database db.Store, mapRoles map[string]db.Role) UserService {
 

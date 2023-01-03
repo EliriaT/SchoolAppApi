@@ -65,3 +65,13 @@ type LoginUserResponse struct {
 	AccessToken string `json:"access_token"`
 	User        UserResponse
 }
+
+type CheckTOTPRequest struct {
+	//Email     string `json:"email" form:"email" binding:"required,email"`
+	TotpToken string `json:"totp_token" binding:"required"`
+}
+
+type CheckTOTPResponse struct {
+	AccessToken string `json:"access_token"`
+	User        UserResponse
+}
