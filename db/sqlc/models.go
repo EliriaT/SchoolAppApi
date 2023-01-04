@@ -22,9 +22,9 @@ type Class struct {
 type Course struct {
 	ID         int64         `json:"id"`
 	Name       string        `json:"name"`
-	TeacherID  sql.NullInt64 `json:"teacherID"`
-	SemesterID sql.NullInt32 `json:"semesterID"`
-	ClassID    sql.NullInt32 `json:"classID"`
+	TeacherID  int64         `json:"teacherID"`
+	SemesterID int64         `json:"semesterID"`
+	ClassID    int64         `json:"classID"`
 	Dates      []time.Time   `json:"dates"`
 	CreatedBy  sql.NullInt64 `json:"createdBy"`
 	UpdatedBy  sql.NullInt64 `json:"updatedBy"`
@@ -35,11 +35,11 @@ type Course struct {
 type Lesson struct {
 	ID        int64          `json:"id"`
 	Name      string         `json:"name"`
-	CourseID  sql.NullInt64  `json:"courseID"`
-	TeacherID sql.NullInt64  `json:"teacherID"`
-	StartHour sql.NullTime   `json:"startHour"`
-	EndHour   sql.NullTime   `json:"endHour"`
-	WeekDay   sql.NullString `json:"weekDay"`
+	CourseID  int64          `json:"courseID"`
+	TeacherID int64          `json:"teacherID"`
+	StartHour time.Time      `json:"startHour"`
+	EndHour   time.Time      `json:"endHour"`
+	WeekDay   string         `json:"weekDay"`
 	Classroom sql.NullString `json:"classroom"`
 	CreatedBy sql.NullInt64  `json:"createdBy"`
 	UpdatedBy sql.NullInt64  `json:"updatedBy"`
@@ -48,13 +48,13 @@ type Lesson struct {
 }
 
 type Mark struct {
-	ID       int64         `json:"id"`
-	CourseID sql.NullInt64 `json:"courseID"`
-	MarkDate sql.NullTime  `json:"markDate"`
-	IsAbsent sql.NullBool  `json:"isAbsent"`
+	ID       int64        `json:"id"`
+	CourseID int64        `json:"courseID"`
+	MarkDate time.Time    `json:"markDate"`
+	IsAbsent sql.NullBool `json:"isAbsent"`
 	// Bigger than 0, lower than 11
 	Mark      sql.NullInt32 `json:"mark"`
-	StudentID sql.NullInt64 `json:"studentID"`
+	StudentID int64         `json:"studentID"`
 	CreatedBy sql.NullInt64 `json:"createdBy"`
 	UpdatedBy sql.NullInt64 `json:"updatedBy"`
 	CreatedAt sql.NullTime  `json:"createdAt"`
@@ -76,14 +76,14 @@ type School struct {
 }
 
 type Semester struct {
-	ID        int64          `json:"id"`
-	Name      sql.NullString `json:"name"`
-	StartDate sql.NullTime   `json:"startDate"`
-	EndDate   sql.NullTime   `json:"endDate"`
-	CreatedBy sql.NullInt64  `json:"createdBy"`
-	UpdatedBy sql.NullInt64  `json:"updatedBy"`
-	CreatedAt sql.NullTime   `json:"createdAt"`
-	UpdatedAt sql.NullTime   `json:"updatedAt"`
+	ID        int64         `json:"id"`
+	Name      string        `json:"name"`
+	StartDate time.Time     `json:"startDate"`
+	EndDate   time.Time     `json:"endDate"`
+	CreatedBy sql.NullInt64 `json:"createdBy"`
+	UpdatedBy sql.NullInt64 `json:"updatedBy"`
+	CreatedAt sql.NullTime  `json:"createdAt"`
+	UpdatedAt sql.NullTime  `json:"updatedAt"`
 }
 
 type User struct {

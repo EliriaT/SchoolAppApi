@@ -9,11 +9,9 @@ INSERT INTO "Semester"(
 SELECT * FROM "Semester"
 WHERE id = $1 LIMIT 1;
 
--- name: GetSemesters :one
+-- name: GetSemesters :many
 SELECT * FROM "Semester"
-ORDER BY start_date DESC
-LIMIT $1
-OFFSET $2;
+ORDER BY start_date DESC;
 
 -- name: GetCurrentSemester :one
 SELECT * FROM "Semester"

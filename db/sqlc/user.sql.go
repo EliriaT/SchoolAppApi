@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -69,6 +70,88 @@ WHERE id = $1
 func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 	_, err := q.db.ExecContext(ctx, deleteUser, id)
 	return err
+}
+
+const getTeachers = `-- name: GetTeachers :many
+Select "User".id, email, password, totp_secret, last_name, first_name, gender, phone_number, domicile, birth_date, password_changed_at, created_at, updated_at, "UserRoles".id, user_id, role_id, school_id, "Role".id, name, "UserRoleClass".id, user_role_id, class_id from "User"
+INNER JOIN "UserRoles"
+ON  "User".id = "UserRoles".user_id and "UserRoles".school_id = $1
+INNER JOIN "Role"
+ON  "UserRoles".role_id = "Role".id and ("Role".name = "Teacher" or "Role".name = "Director" or "Role".name = "School_Manager")
+LEFT JOIN "UserRoleClass"
+on "UserRoleClass".user_role_id = "UserRoles".id
+WHERE "UserRoleClass".user_role_id is Null
+`
+
+type GetTeachersRow struct {
+	ID                int64          `json:"id"`
+	Email             string         `json:"email"`
+	Password          string         `json:"password"`
+	TotpSecret        string         `json:"totpSecret"`
+	LastName          string         `json:"lastName"`
+	FirstName         string         `json:"firstName"`
+	Gender            string         `json:"gender"`
+	PhoneNumber       sql.NullString `json:"phoneNumber"`
+	Domicile          sql.NullString `json:"domicile"`
+	BirthDate         sql.NullTime   `json:"birthDate"`
+	PasswordChangedAt time.Time      `json:"passwordChangedAt"`
+	CreatedAt         time.Time      `json:"createdAt"`
+	UpdatedAt         sql.NullTime   `json:"updatedAt"`
+	ID_2              int64          `json:"id2"`
+	UserID            int64          `json:"userID"`
+	RoleID            int64          `json:"roleID"`
+	SchoolID          int64          `json:"schoolID"`
+	ID_3              int64          `json:"id3"`
+	Name              string         `json:"name"`
+	ID_4              sql.NullInt64  `json:"id4"`
+	UserRoleID        sql.NullInt64  `json:"userRoleID"`
+	ClassID           sql.NullInt64  `json:"classID"`
+}
+
+func (q *Queries) GetTeachers(ctx context.Context, schoolID int64) ([]GetTeachersRow, error) {
+	rows, err := q.db.QueryContext(ctx, getTeachers, schoolID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetTeachersRow{}
+	for rows.Next() {
+		var i GetTeachersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Email,
+			&i.Password,
+			&i.TotpSecret,
+			&i.LastName,
+			&i.FirstName,
+			&i.Gender,
+			&i.PhoneNumber,
+			&i.Domicile,
+			&i.BirthDate,
+			&i.PasswordChangedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID_2,
+			&i.UserID,
+			&i.RoleID,
+			&i.SchoolID,
+			&i.ID_3,
+			&i.Name,
+			&i.ID_4,
+			&i.UserRoleID,
+			&i.ClassID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getUserbyEmail = `-- name: GetUserbyEmail :one

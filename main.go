@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"github.com/EliriaT/SchoolAppApi/api"
+	"github.com/EliriaT/SchoolAppApi/api/handlers"
 	"github.com/EliriaT/SchoolAppApi/config"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/EliriaT/SchoolAppApi/service"

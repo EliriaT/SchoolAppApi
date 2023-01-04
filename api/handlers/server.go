@@ -36,6 +36,7 @@ func (server *Server) setupRouter() {
 
 	router.POST("/users", authMiddleware(server.tokenMaker), server.createUser)
 	router.POST("/users/login", server.loginUser)
+	router.POST("/users/twofactor", authMiddleware(server.tokenMaker), server.twoFactorLoginUser)
 
 	schoolRoutes := router.Group("/schools").Use(authMiddleware(server.tokenMaker))
 
@@ -47,8 +48,38 @@ func (server *Server) setupRouter() {
 
 	classRoutes.POST("", server.createClass)
 	classRoutes.GET("/:id", server.getClassbyId)
+	// here list of pupils can be received
 	classRoutes.GET("", server.getClass)
 	classRoutes.PUT("", server.changeHeadTeacherClass)
+
+	semesterRoutes := router.Group("/semester").Use(authMiddleware(server.tokenMaker))
+
+	semesterRoutes.POST("", server.createSemester)
+	semesterRoutes.GET("", server.getSemesters)
+	semesterRoutes.GET("/current", server.getCurrentSemester)
+
+	courseRoutes := router.Group("/course").Use(authMiddleware(server.tokenMaker))
+
+	courseRoutes.POST("", server.createCourse)
+	courseRoutes.GET("", server.getCourses)
+	courseRoutes.GET("/:id", server.getCourseByID)
+	courseRoutes.PUT("", server.changeCourse)
+
+	lessonRoutes := router.Group("/lesson").Use(authMiddleware(server.tokenMaker))
+
+	lessonRoutes.POST("", server.createLesson)
+	lessonRoutes.GET("", server.getLessons)
+	lessonRoutes.GET("/course/:id", server.getCourseLessonsByCourseID)
+	lessonRoutes.PUT("", server.changeLesson)
+
+	markRoutes := router.Group("/mark").Use(authMiddleware(server.tokenMaker))
+
+	markRoutes.POST("", server.createMark)
+	markRoutes.PUT("", server.changeMark)
+	markRoutes.DELETE("/course/:id", server.deleteMark)
+
+	router.POST("/roles", authMiddleware(server.tokenMaker), server.getRoles)
+	router.POST("/teachers", authMiddleware(server.tokenMaker), server.getTeacher)
 
 	server.router = router
 }

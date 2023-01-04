@@ -50,7 +50,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	}
 
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusCreated, response)
 }
 
 func (server *Server) loginUser(ctx *gin.Context) {
@@ -79,6 +79,55 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 	response.AccessToken = accessToken
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (server *Server) twoFactorLoginUser(ctx *gin.Context) {
+	var req dto.CheckTOTPRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	response, err := server.service.CheckTOTP(ctx, authPayload, req)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	authToken, err := server.tokenMaker.AuthenticateToken(*authPayload)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	response.AccessToken = authToken
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (server *Server) getRoles(ctx *gin.Context) {
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	response, err := server.service.GetRoles(ctx, authPayload)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (server *Server) getTeacher(ctx *gin.Context) {
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	response, err := server.service.GetTeachers(ctx, authPayload)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
 
 	ctx.JSON(http.StatusOK, response)
 }

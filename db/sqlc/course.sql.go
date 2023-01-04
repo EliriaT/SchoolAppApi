@@ -22,10 +22,10 @@ INSERT INTO "Course"(
 `
 
 type CreateCourseParams struct {
-	Name       string        `json:"name"`
-	TeacherID  sql.NullInt64 `json:"teacherID"`
-	SemesterID sql.NullInt32 `json:"semesterID"`
-	ClassID    sql.NullInt32 `json:"classID"`
+	Name       string `json:"name"`
+	TeacherID  int64  `json:"teacherID"`
+	SemesterID int64  `json:"semesterID"`
+	ClassID    int64  `json:"classID"`
 }
 
 func (q *Queries) CreateCourse(ctx context.Context, arg CreateCourseParams) (Course, error) {
@@ -51,22 +51,99 @@ func (q *Queries) CreateCourse(ctx context.Context, arg CreateCourseParams) (Cou
 	return i, err
 }
 
+const getCourseByID = `-- name: GetCourseByID :one
+SELECT id, name, teacher_id, semester_id, class_id, dates, created_by, updated_by, created_at, updated_at FROM "Course"
+WHERE id = $1
+`
+
+func (q *Queries) GetCourseByID(ctx context.Context, id int64) (Course, error) {
+	row := q.db.QueryRowContext(ctx, getCourseByID, id)
+	var i Course
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.TeacherID,
+		&i.SemesterID,
+		&i.ClassID,
+		pq.Array(&i.Dates),
+		&i.CreatedBy,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getCoursesOfSchool = `-- name: GetCoursesOfSchool :many
+SELECT "Course".id, name, teacher_id, semester_id, class_id, dates, created_by, updated_by, created_at, updated_at, "UserRoles".id, user_id, role_id, school_id FROM "Course"
+INNER JOIN "UserRoles"
+ON  "Course".teacher_id = "UserRoles".id AND "UserRoles".school_id = $1
+ORDER BY name
+`
+
+type GetCoursesOfSchoolRow struct {
+	ID         int64         `json:"id"`
+	Name       string        `json:"name"`
+	TeacherID  int64         `json:"teacherID"`
+	SemesterID int64         `json:"semesterID"`
+	ClassID    int64         `json:"classID"`
+	Dates      []time.Time   `json:"dates"`
+	CreatedBy  sql.NullInt64 `json:"createdBy"`
+	UpdatedBy  sql.NullInt64 `json:"updatedBy"`
+	CreatedAt  sql.NullTime  `json:"createdAt"`
+	UpdatedAt  sql.NullTime  `json:"updatedAt"`
+	ID_2       int64         `json:"id2"`
+	UserID     int64         `json:"userID"`
+	RoleID     int64         `json:"roleID"`
+	SchoolID   int64         `json:"schoolID"`
+}
+
+func (q *Queries) GetCoursesOfSchool(ctx context.Context, schoolID int64) ([]GetCoursesOfSchoolRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCoursesOfSchool, schoolID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCoursesOfSchoolRow{}
+	for rows.Next() {
+		var i GetCoursesOfSchoolRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.TeacherID,
+			&i.SemesterID,
+			&i.ClassID,
+			pq.Array(&i.Dates),
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID_2,
+			&i.UserID,
+			&i.RoleID,
+			&i.SchoolID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listCoursesOfClass = `-- name: ListCoursesOfClass :many
 SELECT id, name, teacher_id, semester_id, class_id, dates, created_by, updated_by, created_at, updated_at FROM "Course"
 WHERE class_id = $1
 ORDER BY name
-LIMIT $2
-OFFSET $3
 `
 
-type ListCoursesOfClassParams struct {
-	ClassID sql.NullInt32 `json:"classID"`
-	Limit   int32         `json:"limit"`
-	Offset  int32         `json:"offset"`
-}
-
-func (q *Queries) ListCoursesOfClass(ctx context.Context, arg ListCoursesOfClassParams) ([]Course, error) {
-	rows, err := q.db.QueryContext(ctx, listCoursesOfClass, arg.ClassID, arg.Limit, arg.Offset)
+func (q *Queries) ListCoursesOfClass(ctx context.Context, classID int64) ([]Course, error) {
+	rows, err := q.db.QueryContext(ctx, listCoursesOfClass, classID)
 	if err != nil {
 		return nil, err
 	}
@@ -103,18 +180,10 @@ const listCoursesOfTeacher = `-- name: ListCoursesOfTeacher :many
 SELECT id, name, teacher_id, semester_id, class_id, dates, created_by, updated_by, created_at, updated_at FROM "Course"
 WHERE teacher_id = $1
 ORDER BY name
-LIMIT $2
-OFFSET $3
 `
 
-type ListCoursesOfTeacherParams struct {
-	TeacherID sql.NullInt64 `json:"teacherID"`
-	Limit     int32         `json:"limit"`
-	Offset    int32         `json:"offset"`
-}
-
-func (q *Queries) ListCoursesOfTeacher(ctx context.Context, arg ListCoursesOfTeacherParams) ([]Course, error) {
-	rows, err := q.db.QueryContext(ctx, listCoursesOfTeacher, arg.TeacherID, arg.Limit, arg.Offset)
+func (q *Queries) ListCoursesOfTeacher(ctx context.Context, teacherID int64) ([]Course, error) {
+	rows, err := q.db.QueryContext(ctx, listCoursesOfTeacher, teacherID)
 	if err != nil {
 		return nil, err
 	}
@@ -147,20 +216,27 @@ func (q *Queries) ListCoursesOfTeacher(ctx context.Context, arg ListCoursesOfTea
 	return items, nil
 }
 
-const updateCourseDates = `-- name: UpdateCourseDates :one
+const updateCourse = `-- name: UpdateCourse :one
 UPDATE  "Course"
-SET  dates = $2, updated_at = now()
+SET  teacher_id = $2, name = $1,semester_id=$3,class_id = $4,updated_at = now()
 where id = $1
 RETURNING id, name, teacher_id, semester_id, class_id, dates, created_by, updated_by, created_at, updated_at
 `
 
-type UpdateCourseDatesParams struct {
-	ID    int64       `json:"id"`
-	Dates []time.Time `json:"dates"`
+type UpdateCourseParams struct {
+	Name       string `json:"name"`
+	TeacherID  int64  `json:"teacherID"`
+	SemesterID int64  `json:"semesterID"`
+	ClassID    int64  `json:"classID"`
 }
 
-func (q *Queries) UpdateCourseDates(ctx context.Context, arg UpdateCourseDatesParams) (Course, error) {
-	row := q.db.QueryRowContext(ctx, updateCourseDates, arg.ID, pq.Array(arg.Dates))
+func (q *Queries) UpdateCourse(ctx context.Context, arg UpdateCourseParams) (Course, error) {
+	row := q.db.QueryRowContext(ctx, updateCourse,
+		arg.Name,
+		arg.TeacherID,
+		arg.SemesterID,
+		arg.ClassID,
+	)
 	var i Course
 	err := row.Scan(
 		&i.ID,
@@ -177,20 +253,20 @@ func (q *Queries) UpdateCourseDates(ctx context.Context, arg UpdateCourseDatesPa
 	return i, err
 }
 
-const updateCourseTeacher = `-- name: UpdateCourseTeacher :one
+const updateCourseDates = `-- name: UpdateCourseDates :one
 UPDATE  "Course"
-SET  teacher_id = $2, updated_at = now()
+SET  dates = $2, updated_at = now()
 where id = $1
 RETURNING id, name, teacher_id, semester_id, class_id, dates, created_by, updated_by, created_at, updated_at
 `
 
-type UpdateCourseTeacherParams struct {
-	ID        int64         `json:"id"`
-	TeacherID sql.NullInt64 `json:"teacherID"`
+type UpdateCourseDatesParams struct {
+	ID    int64       `json:"id"`
+	Dates []time.Time `json:"dates"`
 }
 
-func (q *Queries) UpdateCourseTeacher(ctx context.Context, arg UpdateCourseTeacherParams) (Course, error) {
-	row := q.db.QueryRowContext(ctx, updateCourseTeacher, arg.ID, arg.TeacherID)
+func (q *Queries) UpdateCourseDates(ctx context.Context, arg UpdateCourseDatesParams) (Course, error) {
+	row := q.db.QueryRowContext(ctx, updateCourseDates, arg.ID, pq.Array(arg.Dates))
 	var i Course
 	err := row.Scan(
 		&i.ID,

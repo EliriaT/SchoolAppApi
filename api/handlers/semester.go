@@ -10,16 +10,15 @@ import (
 	"net/http"
 )
 
-// in the handler the authorization is checked, only the admin user can create a school
-func (server *Server) createSchool(ctx *gin.Context) {
-	var req dto.CreateSchoolRequest
+func (server *Server) createSemester(ctx *gin.Context) {
+	var req dto.CreateSemesterRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	response, err := server.service.CreateSchool(ctx, authPayload, req)
+	response, err := server.service.CreateSemester(ctx, authPayload, req)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
@@ -38,21 +37,16 @@ func (server *Server) createSchool(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusCreated, response)
 }
 
 // only a school manager can get its school, should not be from Id, but from userid that is in the token payload
-func (server *Server) getSchoolbyId(ctx *gin.Context) {
-	var req dto.GetSchoolRequest
-	if err := ctx.ShouldBindUri(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
+func (server *Server) getSemesters(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	school, err := server.service.GetSchoolByID(ctx, authPayload, req)
+	response, err := server.service.ListSemesters(ctx, authPayload)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err.Error() == sql.ErrNoRows.Error() {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		} else if err == service.ErrUnAuthorized {
@@ -64,21 +58,19 @@ func (server *Server) getSchoolbyId(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, school)
+	ctx.JSON(http.StatusOK, response)
 }
 
 // only the admin can list schools
-func (server *Server) listSchools(ctx *gin.Context) {
-	var req dto.ListSchoolRequest
-	if err := ctx.ShouldBindQuery(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
+func (server *Server) getCurrentSemester(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	response, err := server.service.ListSchools(ctx, authPayload, req)
+	response, err := server.service.GetCurrentSemester(ctx, authPayload)
 	if err != nil {
-		if err == service.ErrUnAuthorized {
+		if err.Error() == sql.ErrNoRows.Error() {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		} else if err == service.ErrUnAuthorized {
 			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}

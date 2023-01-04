@@ -8,6 +8,9 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
+
+	"github.com/lib/pq"
 )
 
 const createMark = `-- name: CreateMark :one
@@ -19,11 +22,11 @@ INSERT INTO "Marks"(
 `
 
 type CreateMarkParams struct {
-	CourseID  sql.NullInt64 `json:"courseID"`
-	MarkDate  sql.NullTime  `json:"markDate"`
+	CourseID  int64         `json:"courseID"`
+	MarkDate  time.Time     `json:"markDate"`
 	IsAbsent  sql.NullBool  `json:"isAbsent"`
 	Mark      sql.NullInt32 `json:"mark"`
-	StudentID sql.NullInt64 `json:"studentID"`
+	StudentID int64         `json:"studentID"`
 }
 
 func (q *Queries) CreateMark(ctx context.Context, arg CreateMarkParams) (Mark, error) {
@@ -60,13 +63,86 @@ func (q *Queries) DeleteMark(ctx context.Context, id int64) error {
 	return err
 }
 
-const getCourseMarks = `-- name: GetCourseMarks :one
-SELECT id, course_id, mark_date, is_absent, mark, student_id, created_by, updated_by, created_at, updated_at FROM "Marks"
-WHERE course_id = $1
+const getCourseMarks = `-- name: GetCourseMarks :many
+SELECT "Marks".id, course_id, mark_date, is_absent, mark, student_id, "Marks".created_by, "Marks".updated_by, "Marks".created_at, "Marks".updated_at, "Course".id, name, teacher_id, semester_id, class_id, dates, "Course".created_by, "Course".updated_by, "Course".created_at, "Course".updated_at FROM "Marks"
+INNER JOIN "Course"
+ON  "Course".id = "Marks".course_id AND "Course".id = $1
 `
 
-func (q *Queries) GetCourseMarks(ctx context.Context, courseID sql.NullInt64) (Mark, error) {
-	row := q.db.QueryRowContext(ctx, getCourseMarks, courseID)
+type GetCourseMarksRow struct {
+	ID          int64         `json:"id"`
+	CourseID    int64         `json:"courseID"`
+	MarkDate    time.Time     `json:"markDate"`
+	IsAbsent    sql.NullBool  `json:"isAbsent"`
+	Mark        sql.NullInt32 `json:"mark"`
+	StudentID   int64         `json:"studentID"`
+	CreatedBy   sql.NullInt64 `json:"createdBy"`
+	UpdatedBy   sql.NullInt64 `json:"updatedBy"`
+	CreatedAt   sql.NullTime  `json:"createdAt"`
+	UpdatedAt   sql.NullTime  `json:"updatedAt"`
+	ID_2        int64         `json:"id2"`
+	Name        string        `json:"name"`
+	TeacherID   int64         `json:"teacherID"`
+	SemesterID  int64         `json:"semesterID"`
+	ClassID     int64         `json:"classID"`
+	Dates       []time.Time   `json:"dates"`
+	CreatedBy_2 sql.NullInt64 `json:"createdBy2"`
+	UpdatedBy_2 sql.NullInt64 `json:"updatedBy2"`
+	CreatedAt_2 sql.NullTime  `json:"createdAt2"`
+	UpdatedAt_2 sql.NullTime  `json:"updatedAt2"`
+}
+
+func (q *Queries) GetCourseMarks(ctx context.Context, id int64) ([]GetCourseMarksRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCourseMarks, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCourseMarksRow{}
+	for rows.Next() {
+		var i GetCourseMarksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CourseID,
+			&i.MarkDate,
+			&i.IsAbsent,
+			&i.Mark,
+			&i.StudentID,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID_2,
+			&i.Name,
+			&i.TeacherID,
+			&i.SemesterID,
+			&i.ClassID,
+			pq.Array(&i.Dates),
+			&i.CreatedBy_2,
+			&i.UpdatedBy_2,
+			&i.CreatedAt_2,
+			&i.UpdatedAt_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getMarkByID = `-- name: GetMarkByID :one
+SELECT id, course_id, mark_date, is_absent, mark, student_id, created_by, updated_by, created_at, updated_at FROM "Marks"
+where id = $1
+`
+
+func (q *Queries) GetMarkByID(ctx context.Context, id int64) (Mark, error) {
+	row := q.db.QueryRowContext(ctx, getMarkByID, id)
 	var i Mark
 	err := row.Scan(
 		&i.ID,
@@ -83,32 +159,82 @@ func (q *Queries) GetCourseMarks(ctx context.Context, courseID sql.NullInt64) (M
 	return i, err
 }
 
-const getStudentCourseMarks = `-- name: GetStudentCourseMarks :one
-SELECT id, course_id, mark_date, is_absent, mark, student_id, created_by, updated_by, created_at, updated_at FROM "Marks"
-WHERE course_id = $1 AND student_id = $2
+const getStudentCourseMarks = `-- name: GetStudentCourseMarks :many
+SELECT "Marks".id, course_id, mark_date, is_absent, mark, student_id, "Marks".created_by, "Marks".updated_by, "Marks".created_at, "Marks".updated_at, "Course".id, name, teacher_id, semester_id, class_id, dates, "Course".created_by, "Course".updated_by, "Course".created_at, "Course".updated_at FROM "Marks"
+INNER JOIN "Course"
+ON  "Course".id = "Marks".course_id AND "Course".id = $1 AND "Marks".student_id = $2
 `
 
 type GetStudentCourseMarksParams struct {
-	CourseID  sql.NullInt64 `json:"courseID"`
-	StudentID sql.NullInt64 `json:"studentID"`
+	ID        int64 `json:"id"`
+	StudentID int64 `json:"studentID"`
 }
 
-func (q *Queries) GetStudentCourseMarks(ctx context.Context, arg GetStudentCourseMarksParams) (Mark, error) {
-	row := q.db.QueryRowContext(ctx, getStudentCourseMarks, arg.CourseID, arg.StudentID)
-	var i Mark
-	err := row.Scan(
-		&i.ID,
-		&i.CourseID,
-		&i.MarkDate,
-		&i.IsAbsent,
-		&i.Mark,
-		&i.StudentID,
-		&i.CreatedBy,
-		&i.UpdatedBy,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+type GetStudentCourseMarksRow struct {
+	ID          int64         `json:"id"`
+	CourseID    int64         `json:"courseID"`
+	MarkDate    time.Time     `json:"markDate"`
+	IsAbsent    sql.NullBool  `json:"isAbsent"`
+	Mark        sql.NullInt32 `json:"mark"`
+	StudentID   int64         `json:"studentID"`
+	CreatedBy   sql.NullInt64 `json:"createdBy"`
+	UpdatedBy   sql.NullInt64 `json:"updatedBy"`
+	CreatedAt   sql.NullTime  `json:"createdAt"`
+	UpdatedAt   sql.NullTime  `json:"updatedAt"`
+	ID_2        int64         `json:"id2"`
+	Name        string        `json:"name"`
+	TeacherID   int64         `json:"teacherID"`
+	SemesterID  int64         `json:"semesterID"`
+	ClassID     int64         `json:"classID"`
+	Dates       []time.Time   `json:"dates"`
+	CreatedBy_2 sql.NullInt64 `json:"createdBy2"`
+	UpdatedBy_2 sql.NullInt64 `json:"updatedBy2"`
+	CreatedAt_2 sql.NullTime  `json:"createdAt2"`
+	UpdatedAt_2 sql.NullTime  `json:"updatedAt2"`
+}
+
+func (q *Queries) GetStudentCourseMarks(ctx context.Context, arg GetStudentCourseMarksParams) ([]GetStudentCourseMarksRow, error) {
+	rows, err := q.db.QueryContext(ctx, getStudentCourseMarks, arg.ID, arg.StudentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetStudentCourseMarksRow{}
+	for rows.Next() {
+		var i GetStudentCourseMarksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CourseID,
+			&i.MarkDate,
+			&i.IsAbsent,
+			&i.Mark,
+			&i.StudentID,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID_2,
+			&i.Name,
+			&i.TeacherID,
+			&i.SemesterID,
+			&i.ClassID,
+			pq.Array(&i.Dates),
+			&i.CreatedBy_2,
+			&i.UpdatedBy_2,
+			&i.CreatedAt_2,
+			&i.UpdatedAt_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateCourseAbsencebyId = `-- name: UpdateCourseAbsencebyId :one
