@@ -51,6 +51,12 @@ func (server *Server) setupRouter() {
 	classRoutes.GET("", server.getClass)
 	classRoutes.PUT("", server.changeHeadTeacherClass)
 
+	semesterRoutes := router.Group("/semester").Use(authMiddleware(server.tokenMaker))
+
+	semesterRoutes.POST("", server.createSemester)
+	semesterRoutes.GET("", server.getSemesters)
+	semesterRoutes.GET("/current", server.getCurrentSemester)
+
 	server.router = router
 }
 

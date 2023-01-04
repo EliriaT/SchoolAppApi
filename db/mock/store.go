@@ -394,18 +394,18 @@ func (mr *MockStoreMockRecorder) GetSemesterbyId(arg0, arg1 interface{}) *gomock
 }
 
 // GetSemesters mocks base method.
-func (m *MockStore) GetSemesters(arg0 context.Context, arg1 db.GetSemestersParams) (db.Semester, error) {
+func (m *MockStore) GetSemesters(arg0 context.Context) ([]db.Semester, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSemesters", arg0, arg1)
-	ret0, _ := ret[0].(db.Semester)
+	ret := m.ctrl.Call(m, "GetSemesters", arg0)
+	ret0, _ := ret[0].([]db.Semester)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSemesters indicates an expected call of GetSemesters.
-func (mr *MockStoreMockRecorder) GetSemesters(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) GetSemesters(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSemesters", reflect.TypeOf((*MockStore)(nil).GetSemesters), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSemesters", reflect.TypeOf((*MockStore)(nil).GetSemesters), arg0)
 }
 
 // GetStudentCourseMarks mocks base method.

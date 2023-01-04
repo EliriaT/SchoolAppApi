@@ -10,6 +10,10 @@ type Service interface {
 	SchoolService
 	ClassService
 	RolesService
+	SemesterService
+	CourseService
+	LessonService
+	MarkService
 }
 
 type ServerService struct {
@@ -17,6 +21,10 @@ type ServerService struct {
 	SchoolService
 	ClassService
 	RolesService
+	SemesterService
+	CourseService
+	LessonService
+	MarkService
 }
 
 func NewServerService(database db.Store) (Service, error) {
@@ -31,7 +39,11 @@ func NewServerService(database db.Store) (Service, error) {
 	}
 
 	return &ServerService{UserService: NewUserService(database, mapRoles),
-		SchoolService: NewSchoolService(database, mapRoles),
-		RolesService:  NewRolesService(database),
-		ClassService:  NewClassService(database, mapRoles)}, err
+		SchoolService:   NewSchoolService(database, mapRoles),
+		RolesService:    NewRolesService(database),
+		ClassService:    NewClassService(database, mapRoles),
+		SemesterService: NewSemesterService(database, mapRoles),
+		CourseService:   NewCourseService(database, mapRoles),
+		LessonService:   NewLessonService(database, mapRoles),
+		MarkService:     NewMarkService(database, mapRoles)}, err
 }

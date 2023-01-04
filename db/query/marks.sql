@@ -5,13 +5,19 @@ INSERT INTO "Marks"(
             $1,$2,$3,$4,$5
         ) RETURNING *;
 
--- name: GetCourseMarks :one
+-- name: GetCourseMarks :many
 SELECT * FROM "Marks"
-WHERE course_id = $1;
+INNER JOIN "Course"
+ON  "Course".id = "Marks".course_id AND "Course".id = $1;
 
--- name: GetStudentCourseMarks :one
+-- name: GetMarkByID :one
 SELECT * FROM "Marks"
-WHERE course_id = $1 AND student_id = $2;
+where id = $1;
+
+-- name: GetStudentCourseMarks :many
+SELECT * FROM "Marks"
+INNER JOIN "Course"
+ON  "Course".id = "Marks".course_id AND "Course".id = $1 AND "Marks".student_id = $2;
 
 -- name: UpdateCourseMarksbyId :one
 UPDATE  "Marks"

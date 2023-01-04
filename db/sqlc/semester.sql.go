@@ -7,7 +7,7 @@ package db
 
 import (
 	"context"
-	"database/sql"
+	"time"
 )
 
 const createSemester = `-- name: CreateSemester :one
@@ -19,9 +19,9 @@ INSERT INTO "Semester"(
 `
 
 type CreateSemesterParams struct {
-	Name      sql.NullString `json:"name"`
-	StartDate sql.NullTime   `json:"startDate"`
-	EndDate   sql.NullTime   `json:"endDate"`
+	Name      string    `json:"name"`
+	StartDate time.Time `json:"startDate"`
+	EndDate   time.Time `json:"endDate"`
 }
 
 func (q *Queries) CreateSemester(ctx context.Context, arg CreateSemesterParams) (Semester, error) {
@@ -83,30 +83,39 @@ func (q *Queries) GetSemesterbyId(ctx context.Context, id int64) (Semester, erro
 	return i, err
 }
 
-const getSemesters = `-- name: GetSemesters :one
+const getSemesters = `-- name: GetSemesters :many
 SELECT id, name, start_date, end_date, created_by, updated_by, created_at, updated_at FROM "Semester"
 ORDER BY start_date DESC
-LIMIT $1
-OFFSET $2
 `
 
-type GetSemestersParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-func (q *Queries) GetSemesters(ctx context.Context, arg GetSemestersParams) (Semester, error) {
-	row := q.db.QueryRowContext(ctx, getSemesters, arg.Limit, arg.Offset)
-	var i Semester
-	err := row.Scan(
-		&i.ID,
-		&i.Name,
-		&i.StartDate,
-		&i.EndDate,
-		&i.CreatedBy,
-		&i.UpdatedBy,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+func (q *Queries) GetSemesters(ctx context.Context) ([]Semester, error) {
+	rows, err := q.db.QueryContext(ctx, getSemesters)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Semester{}
+	for rows.Next() {
+		var i Semester
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.StartDate,
+			&i.EndDate,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
