@@ -6,7 +6,6 @@ package mockdb
 
 import (
 	context "context"
-	sql "database/sql"
 	reflect "reflect"
 
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
@@ -244,10 +243,10 @@ func (mr *MockStoreMockRecorder) GetClassById(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // GetClassSchedule mocks base method.
-func (m *MockStore) GetClassSchedule(arg0 context.Context, arg1 sql.NullInt32) (db.GetClassScheduleRow, error) {
+func (m *MockStore) GetClassSchedule(arg0 context.Context, arg1 int64) ([]db.GetClassScheduleRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetClassSchedule", arg0, arg1)
-	ret0, _ := ret[0].(db.GetClassScheduleRow)
+	ret0, _ := ret[0].([]db.GetClassScheduleRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -273,11 +272,26 @@ func (mr *MockStoreMockRecorder) GetClassWithStudents(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClassWithStudents", reflect.TypeOf((*MockStore)(nil).GetClassWithStudents), arg0, arg1)
 }
 
+// GetCourseByID mocks base method.
+func (m *MockStore) GetCourseByID(arg0 context.Context, arg1 int64) (db.Course, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCourseByID", arg0, arg1)
+	ret0, _ := ret[0].(db.Course)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCourseByID indicates an expected call of GetCourseByID.
+func (mr *MockStoreMockRecorder) GetCourseByID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCourseByID", reflect.TypeOf((*MockStore)(nil).GetCourseByID), arg0, arg1)
+}
+
 // GetCourseMarks mocks base method.
-func (m *MockStore) GetCourseMarks(arg0 context.Context, arg1 sql.NullInt64) (db.Mark, error) {
+func (m *MockStore) GetCourseMarks(arg0 context.Context, arg1 int64) ([]db.GetCourseMarksRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCourseMarks", arg0, arg1)
-	ret0, _ := ret[0].(db.Mark)
+	ret0, _ := ret[0].([]db.GetCourseMarksRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -286,6 +300,21 @@ func (m *MockStore) GetCourseMarks(arg0 context.Context, arg1 sql.NullInt64) (db
 func (mr *MockStoreMockRecorder) GetCourseMarks(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCourseMarks", reflect.TypeOf((*MockStore)(nil).GetCourseMarks), arg0, arg1)
+}
+
+// GetCoursesOfSchool mocks base method.
+func (m *MockStore) GetCoursesOfSchool(arg0 context.Context, arg1 int64) ([]db.GetCoursesOfSchoolRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCoursesOfSchool", arg0, arg1)
+	ret0, _ := ret[0].([]db.GetCoursesOfSchoolRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCoursesOfSchool indicates an expected call of GetCoursesOfSchool.
+func (mr *MockStoreMockRecorder) GetCoursesOfSchool(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCoursesOfSchool", reflect.TypeOf((*MockStore)(nil).GetCoursesOfSchool), arg0, arg1)
 }
 
 // GetCurrentSemester mocks base method.
@@ -304,10 +333,10 @@ func (mr *MockStoreMockRecorder) GetCurrentSemester(arg0 interface{}) *gomock.Ca
 }
 
 // GetLessonsOfCourse mocks base method.
-func (m *MockStore) GetLessonsOfCourse(arg0 context.Context, arg1 sql.NullInt64) (db.Lesson, error) {
+func (m *MockStore) GetLessonsOfCourse(arg0 context.Context, arg1 int64) ([]db.Lesson, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetLessonsOfCourse", arg0, arg1)
-	ret0, _ := ret[0].(db.Lesson)
+	ret0, _ := ret[0].([]db.Lesson)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -316,6 +345,21 @@ func (m *MockStore) GetLessonsOfCourse(arg0 context.Context, arg1 sql.NullInt64)
 func (mr *MockStoreMockRecorder) GetLessonsOfCourse(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLessonsOfCourse", reflect.TypeOf((*MockStore)(nil).GetLessonsOfCourse), arg0, arg1)
+}
+
+// GetMarkByID mocks base method.
+func (m *MockStore) GetMarkByID(arg0 context.Context, arg1 int64) (db.Mark, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMarkByID", arg0, arg1)
+	ret0, _ := ret[0].(db.Mark)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMarkByID indicates an expected call of GetMarkByID.
+func (mr *MockStoreMockRecorder) GetMarkByID(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMarkByID", reflect.TypeOf((*MockStore)(nil).GetMarkByID), arg0, arg1)
 }
 
 // GetRolebyId mocks base method.
@@ -409,10 +453,10 @@ func (mr *MockStoreMockRecorder) GetSemesters(arg0 interface{}) *gomock.Call {
 }
 
 // GetStudentCourseMarks mocks base method.
-func (m *MockStore) GetStudentCourseMarks(arg0 context.Context, arg1 db.GetStudentCourseMarksParams) (db.Mark, error) {
+func (m *MockStore) GetStudentCourseMarks(arg0 context.Context, arg1 db.GetStudentCourseMarksParams) ([]db.GetStudentCourseMarksRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStudentCourseMarks", arg0, arg1)
-	ret0, _ := ret[0].(db.Mark)
+	ret0, _ := ret[0].([]db.GetStudentCourseMarksRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -424,10 +468,10 @@ func (mr *MockStoreMockRecorder) GetStudentCourseMarks(arg0, arg1 interface{}) *
 }
 
 // GetTeacherSchedule mocks base method.
-func (m *MockStore) GetTeacherSchedule(arg0 context.Context, arg1 sql.NullInt64) (db.GetTeacherScheduleRow, error) {
+func (m *MockStore) GetTeacherSchedule(arg0 context.Context, arg1 int64) ([]db.GetTeacherScheduleRow, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetTeacherSchedule", arg0, arg1)
-	ret0, _ := ret[0].(db.GetTeacherScheduleRow)
+	ret0, _ := ret[0].([]db.GetTeacherScheduleRow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -436,6 +480,21 @@ func (m *MockStore) GetTeacherSchedule(arg0 context.Context, arg1 sql.NullInt64)
 func (mr *MockStoreMockRecorder) GetTeacherSchedule(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeacherSchedule", reflect.TypeOf((*MockStore)(nil).GetTeacherSchedule), arg0, arg1)
+}
+
+// GetTeachers mocks base method.
+func (m *MockStore) GetTeachers(arg0 context.Context, arg1 int64) ([]db.GetTeachersRow, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTeachers", arg0, arg1)
+	ret0, _ := ret[0].([]db.GetTeachersRow)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetTeachers indicates an expected call of GetTeachers.
+func (mr *MockStoreMockRecorder) GetTeachers(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeachers", reflect.TypeOf((*MockStore)(nil).GetTeachers), arg0, arg1)
 }
 
 // GetUserClassByUserRoleId mocks base method.
@@ -529,7 +588,7 @@ func (mr *MockStoreMockRecorder) ListAllClasses(arg0 interface{}) *gomock.Call {
 }
 
 // ListCoursesOfClass mocks base method.
-func (m *MockStore) ListCoursesOfClass(arg0 context.Context, arg1 db.ListCoursesOfClassParams) ([]db.Course, error) {
+func (m *MockStore) ListCoursesOfClass(arg0 context.Context, arg1 int64) ([]db.Course, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListCoursesOfClass", arg0, arg1)
 	ret0, _ := ret[0].([]db.Course)
@@ -544,7 +603,7 @@ func (mr *MockStoreMockRecorder) ListCoursesOfClass(arg0, arg1 interface{}) *gom
 }
 
 // ListCoursesOfTeacher mocks base method.
-func (m *MockStore) ListCoursesOfTeacher(arg0 context.Context, arg1 db.ListCoursesOfTeacherParams) ([]db.Course, error) {
+func (m *MockStore) ListCoursesOfTeacher(arg0 context.Context, arg1 int64) ([]db.Course, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListCoursesOfTeacher", arg0, arg1)
 	ret0, _ := ret[0].([]db.Course)
@@ -586,6 +645,21 @@ func (m *MockStore) UpdateClassHeadTeacher(arg0 context.Context, arg1 db.UpdateC
 func (mr *MockStoreMockRecorder) UpdateClassHeadTeacher(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateClassHeadTeacher", reflect.TypeOf((*MockStore)(nil).UpdateClassHeadTeacher), arg0, arg1)
+}
+
+// UpdateCourse mocks base method.
+func (m *MockStore) UpdateCourse(arg0 context.Context, arg1 db.UpdateCourseParams) (db.Course, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateCourse", arg0, arg1)
+	ret0, _ := ret[0].(db.Course)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateCourse indicates an expected call of UpdateCourse.
+func (mr *MockStoreMockRecorder) UpdateCourse(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCourse", reflect.TypeOf((*MockStore)(nil).UpdateCourse), arg0, arg1)
 }
 
 // UpdateCourseAbsencebyId mocks base method.
@@ -633,34 +707,19 @@ func (mr *MockStoreMockRecorder) UpdateCourseMarksbyId(arg0, arg1 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCourseMarksbyId", reflect.TypeOf((*MockStore)(nil).UpdateCourseMarksbyId), arg0, arg1)
 }
 
-// UpdateCourseTeacher mocks base method.
-func (m *MockStore) UpdateCourseTeacher(arg0 context.Context, arg1 db.UpdateCourseTeacherParams) (db.Course, error) {
+// UpdateLesson mocks base method.
+func (m *MockStore) UpdateLesson(arg0 context.Context, arg1 db.UpdateLessonParams) (db.Lesson, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateCourseTeacher", arg0, arg1)
-	ret0, _ := ret[0].(db.Course)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UpdateCourseTeacher indicates an expected call of UpdateCourseTeacher.
-func (mr *MockStoreMockRecorder) UpdateCourseTeacher(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateCourseTeacher", reflect.TypeOf((*MockStore)(nil).UpdateCourseTeacher), arg0, arg1)
-}
-
-// UpdateLessonTimeAndPlace mocks base method.
-func (m *MockStore) UpdateLessonTimeAndPlace(arg0 context.Context, arg1 db.UpdateLessonTimeAndPlaceParams) (db.Lesson, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateLessonTimeAndPlace", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateLesson", arg0, arg1)
 	ret0, _ := ret[0].(db.Lesson)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// UpdateLessonTimeAndPlace indicates an expected call of UpdateLessonTimeAndPlace.
-func (mr *MockStoreMockRecorder) UpdateLessonTimeAndPlace(arg0, arg1 interface{}) *gomock.Call {
+// UpdateLesson indicates an expected call of UpdateLesson.
+func (mr *MockStoreMockRecorder) UpdateLesson(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLessonTimeAndPlace", reflect.TypeOf((*MockStore)(nil).UpdateLessonTimeAndPlace), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLesson", reflect.TypeOf((*MockStore)(nil).UpdateLesson), arg0, arg1)
 }
 
 // UpdateSchool mocks base method.

@@ -40,7 +40,7 @@ func NewServerService(database db.Store) (Service, error) {
 
 	return &ServerService{UserService: NewUserService(database, mapRoles),
 		SchoolService:   NewSchoolService(database, mapRoles),
-		RolesService:    NewRolesService(database),
+		RolesService:    NewRolesService(database, mapRoles),
 		ClassService:    NewClassService(database, mapRoles),
 		SemesterService: NewSemesterService(database, mapRoles),
 		CourseService:   NewCourseService(database, mapRoles),
