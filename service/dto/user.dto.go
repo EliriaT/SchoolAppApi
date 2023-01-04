@@ -75,3 +75,10 @@ type CheckTOTPResponse struct {
 	AccessToken string `json:"access_token"`
 	User        UserResponse
 }
+
+type TeacherResponse struct {
+	UserID     int64  `json:"user_id"`
+	UserName   string `json:"user_name"`
+	UserRoleID int64  `json:"user_role_id"`
+	RoleName   string `json:"role_name"`
+}

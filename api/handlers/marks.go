@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/service"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
@@ -10,15 +9,15 @@ import (
 	"net/http"
 )
 
-func (server *Server) createSemester(ctx *gin.Context) {
-	var req dto.CreateSemesterRequest
+func (server *Server) createMark(ctx *gin.Context) {
+	var req dto.CreateMarkRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	response, err := server.service.CreateSemester(ctx, authPayload, req)
+	response, err := server.service.CreateMark(ctx, authPayload, req)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
@@ -40,20 +39,20 @@ func (server *Server) createSemester(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response)
 }
 
-// only a school manager can get its school, should not be from Id, but from userid that is in the token payload
-func (server *Server) getSemesters(ctx *gin.Context) {
+func (server *Server) changeMark(ctx *gin.Context) {
+	var req dto.UpdateMarkRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	response, err := server.service.ListSemesters(ctx, authPayload)
+	response, err := server.service.ChangeMark(ctx, authPayload, req)
 	if err != nil {
-		if err.Error() == sql.ErrNoRows.Error() {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		} else if err == service.ErrUnAuthorized {
+		if err == service.ErrUnAuthorized {
 			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
-
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -61,16 +60,17 @@ func (server *Server) getSemesters(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// only the admin can list schools
-func (server *Server) getCurrentSemester(ctx *gin.Context) {
+func (server *Server) deleteMark(ctx *gin.Context) {
+	var req dto.DeleteMarkRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	response, err := server.service.GetCurrentSemester(ctx, authPayload)
+	err := server.service.DeleteMark(ctx, authPayload, req)
 	if err != nil {
-		if err.Error() == sql.ErrNoRows.Error() {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		} else if err == service.ErrUnAuthorized {
+		if err == service.ErrUnAuthorized {
 			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
@@ -78,5 +78,5 @@ func (server *Server) getCurrentSemester(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusNoContent, dto.MarkResponse{})
 }

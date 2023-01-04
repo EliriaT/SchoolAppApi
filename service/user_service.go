@@ -27,6 +27,7 @@ type UserService interface {
 	Login(ctx context.Context, req dto.LoginUserRequest) (response dto.LoginUserResponse, roles []int64, schoolID int64, ClassID int64, err error)
 	CreateAdmin() error
 	CheckTOTP(ctx context.Context, token *token.Payload, req dto.CheckTOTPRequest) (response dto.LoginUserResponse, err error)
+	GetTeachers(ctx context.Context, token *token.Payload) (response []dto.TeacherResponse, err error)
 }
 
 type userService struct {
@@ -301,9 +302,24 @@ func (s *userService) CheckTOTP(ctx context.Context, token *token.Payload, req d
 	return
 }
 
+func (s *userService) GetTeachers(ctx context.Context, token *token.Payload) (response []dto.TeacherResponse, err error) {
+	if !CheckRolePresence(token.Role, s.roles[Director].ID) && !CheckRolePresence(token.Role, s.roles[SchoolManager].ID) {
+		return []dto.TeacherResponse{}, ErrUnAuthorized
+	}
+	teachers, err := s.db.GetTeachers(ctx, token.SchoolID)
+	if err != nil {
+		return []dto.TeacherResponse{}, err
+	}
+
+	for _, t := range teachers {
+		response = append(response, dto.TeacherResponse{UserID: t.UserID, UserName: t.FirstName + " " + t.LastName, UserRoleID: t.ID_2, RoleName: t.Name})
+	}
+	return
+}
+
 func NewUserService(database db.Store, mapRoles map[string]db.Role) UserService {
 
 	return &userService{db: database, roles: mapRoles,
-		RolesService: NewRolesService(database),
+		RolesService: NewRolesService(database, mapRoles),
 		ClassService: NewClassService(database, mapRoles)}
 }

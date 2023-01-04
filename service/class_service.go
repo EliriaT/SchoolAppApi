@@ -235,5 +235,5 @@ func (rs *classService) ChangeHeadTeacherClass(ctx context.Context, authToken *t
 	return response, err
 }
 func NewClassService(database db.Store, mapRoles map[string]db.Role) ClassService {
-	return &classService{db: database, roles: mapRoles, RolesService: NewRolesService(database)}
+	return &classService{db: database, roles: mapRoles, RolesService: NewRolesService(database, mapRoles)}
 }

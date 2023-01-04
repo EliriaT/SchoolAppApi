@@ -39,6 +39,7 @@ type Querier interface {
 	GetSemesters(ctx context.Context) ([]Semester, error)
 	GetStudentCourseMarks(ctx context.Context, arg GetStudentCourseMarksParams) ([]GetStudentCourseMarksRow, error)
 	GetTeacherSchedule(ctx context.Context, teacherID int64) ([]GetTeacherScheduleRow, error)
+	GetTeachers(ctx context.Context, schoolID int64) ([]GetTeachersRow, error)
 	GetUserClassByUserRoleId(ctx context.Context, userRoleID int64) (UserRoleClass, error)
 	GetUserRoleById(ctx context.Context, id int64) (UserRole, error)
 	GetUserRoleByUserId(ctx context.Context, userID int64) ([]UserRole, error)

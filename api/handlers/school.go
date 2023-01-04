@@ -38,7 +38,7 @@ func (server *Server) createSchool(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusCreated, response)
 }
 
 // only a school manager can get its school, should not be from Id, but from userid that is in the token payload

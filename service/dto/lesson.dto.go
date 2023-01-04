@@ -8,7 +8,7 @@ import (
 type CreateLessonRequest struct {
 	Name      string    `json:"name" binding:"required"`
 	CourseID  int64     `json:"course_id" binding:"required"`
-	StartHour time.Time `json:"start_hour" binding:"required" time_format:"15:04"`
+	StartHour time.Time `json:"start_hour" binding:"required ltefield=EndHour" time_format:"15:04"`
 	EndHour   time.Time `json:"end_hour" binding:"required" time_format:"15:04"`
 	WeekDay   string    `json:"week_day" binding:"required,oneof=Monday Tuesday Wednesday Thursday Friday Saturday Sunday"`
 	Classroom string    `json:"classroom"`
@@ -33,8 +33,8 @@ type UpdateLessonParams struct {
 	LessonID  int64     `json:"lesson_id"`
 	Name      string    `json:"name"`
 	CourseID  int64     `json:"course_id"`
-	StartHour time.Time `json:"start_hour"`
-	EndHour   time.Time `json:"end_hour"`
+	StartHour time.Time `json:"start_hour" binding:"required ltefield=EndHour" time_format:"15:04"`
+	EndHour   time.Time `json:"end_hour" binding:"required" time_format:"15:04"`
 	WeekDay   string    `json:"week_day"`
 	Classroom string    `json:"classroom"`
 }

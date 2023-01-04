@@ -27,3 +27,9 @@ type ChangeHeadTeacherRequest struct {
 	ClassID       int64 `json:"class_id" binding:"required"`
 	HeadTeacherID int64 `json:"head_teacher_id" binding:"required"`
 }
+type GetClassStudentsRequest struct {
+	ClassID int64 `uri:"id" binding:"required"`
+}
+type GetClassStudentsResponse struct {
+	Pupils []UserResponse `json:"pupils"`
+}

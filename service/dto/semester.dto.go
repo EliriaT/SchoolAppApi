@@ -4,7 +4,7 @@ import "time"
 
 type CreateSemesterRequest struct {
 	Name      string    `json:"name" binding:"required"`
-	StartDate time.Time `json:"start_date" binding:"required" time_format:"2006-01-02"`
+	StartDate time.Time `json:"start_date" binding:"required ltefield=EndDate" time_format:"2006-01-02"`
 	EndDate   time.Time `json:"end_date" binding:"required" time_format:"2006-01-02"`
 }
 

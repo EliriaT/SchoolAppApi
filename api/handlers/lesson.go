@@ -1,7 +1,6 @@
 package api
 
 import (
-	"database/sql"
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/service"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
@@ -10,15 +9,15 @@ import (
 	"net/http"
 )
 
-func (server *Server) createSemester(ctx *gin.Context) {
-	var req dto.CreateSemesterRequest
+func (server *Server) createLesson(ctx *gin.Context) {
+	var req dto.CreateLessonRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	response, err := server.service.CreateSemester(ctx, authPayload, req)
+	response, err := server.service.CreateLesson(ctx, authPayload, req)
 
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
@@ -40,20 +39,15 @@ func (server *Server) createSemester(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, response)
 }
 
-// only a school manager can get its school, should not be from Id, but from userid that is in the token payload
-func (server *Server) getSemesters(ctx *gin.Context) {
+func (server *Server) getLessons(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	response, err := server.service.ListSemesters(ctx, authPayload)
+	response, err := server.service.GetLessons(ctx, authPayload)
 	if err != nil {
-		if err.Error() == sql.ErrNoRows.Error() {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
-			return
-		} else if err == service.ErrUnAuthorized {
+		if err == service.ErrUnAuthorized {
 			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
-
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -61,16 +55,39 @@ func (server *Server) getSemesters(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// only the admin can list schools
-func (server *Server) getCurrentSemester(ctx *gin.Context) {
+func (server *Server) changeLesson(ctx *gin.Context) {
+	var req dto.UpdateLessonParams
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	response, err := server.service.GetCurrentSemester(ctx, authPayload)
+	response, err := server.service.ChangeLesson(ctx, authPayload, req)
 	if err != nil {
-		if err.Error() == sql.ErrNoRows.Error() {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+		if err == service.ErrUnAuthorized {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 			return
-		} else if err == service.ErrUnAuthorized {
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+// lessons of a course /lesson/course/:id
+func (server *Server) getCourseLessonsByCourseID(ctx *gin.Context) {
+	var req dto.GetCourseLessonsRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	response, err := server.service.GetCourseLessons(ctx, authPayload, req)
+	if err != nil {
+		if err == service.ErrUnAuthorized {
 			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}

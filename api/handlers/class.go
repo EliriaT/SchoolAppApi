@@ -35,7 +35,7 @@ func (server *Server) createClass(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusCreated, response)
 }
 
 func (server *Server) getClassbyId(ctx *gin.Context) {
