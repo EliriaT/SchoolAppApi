@@ -125,7 +125,7 @@ func (server *Server) getTeacher(ctx *gin.Context) {
 
 	response, err := server.service.GetTeachers(ctx, authPayload)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 

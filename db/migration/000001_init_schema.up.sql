@@ -69,7 +69,6 @@ CREATE TABLE "Lesson" (
                           "id" bigserial PRIMARY KEY,
                           "name" varchar NOT NULL,
                           "course_id" bigint NOT NULL,
-                          "teacher_id" bigint NOT NULL,
                           "start_hour" time NOT NULL,
                           "end_hour" time NOT NULL,
                           "week_day" varchar NOT NULL,
@@ -118,8 +117,6 @@ CREATE INDEX ON "Course" ("class_id", "semester_id");
 
 CREATE INDEX ON "Lesson" ("course_id");
 
-CREATE INDEX ON "Lesson" ("course_id", "teacher_id");
-
 COMMENT ON COLUMN "Marks"."mark" IS 'Bigger than 0, lower than 11';
 
 ALTER TABLE "UserRoles" ADD FOREIGN KEY ("user_id") REFERENCES "User" ("id");
@@ -154,8 +151,6 @@ ALTER TABLE "Class" ADD FOREIGN KEY ("created_by") REFERENCES "UserRoles" ("id")
 ALTER TABLE "Class" ADD FOREIGN KEY ("updated_by") REFERENCES "UserRoles" ("id");
 
 ALTER TABLE "Lesson" ADD FOREIGN KEY ("course_id") REFERENCES "Course" ("id");
-
-ALTER TABLE "Lesson" ADD FOREIGN KEY ("teacher_id") REFERENCES "UserRoles" ("id");
 
 ALTER TABLE "Lesson" ADD FOREIGN KEY ("created_by") REFERENCES "UserRoles" ("id");
 

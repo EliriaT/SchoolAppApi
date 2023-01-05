@@ -30,9 +30,9 @@ type MarkResponse struct {
 type UpdateMarkRequest struct {
 	MarkID    int64     `json:"mark_id" binding:"required"`
 	CourseID  int64     `json:"course_id" binding:"required"`
-	MarkDate  time.Time `json:"mark_date" binding:"required"`
+	MarkDate  time.Time `json:"mark_date" `
 	IsAbsent  bool      `json:"is_absent"`
-	Mark      int32     `json:"mark" binding:"gte=1,lte=10"`
+	Mark      int32     `json:"mark" binding:"gte=0,lte=10"`
 	StudentID int64     `json:"student_id" binding:"required"`
 }
 

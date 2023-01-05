@@ -33,3 +33,8 @@ type GetClassStudentsRequest struct {
 type GetClassStudentsResponse struct {
 	Pupils []UserResponse `json:"pupils"`
 }
+
+type ScheduleResponse struct {
+	MySchedule               []LessonResponse `json:"my_schedule"`
+	HeadTeacherClassSchedule []LessonResponse `json:"head_teacher_class_schedule"`
+}

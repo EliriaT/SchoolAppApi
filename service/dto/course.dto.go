@@ -24,6 +24,7 @@ type CourseResponse struct {
 }
 
 type UpdateCourseParams struct {
+	CourseID   int64  `json:"id" binding:"required"`
 	Name       string `json:"name"`
 	TeacherID  int64  `json:"teacher_id"`
 	SemesterID int64  `json:"semester_id"`

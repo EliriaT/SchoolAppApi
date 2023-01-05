@@ -12,6 +12,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/pquerna/otp/totp"
 	"image/png"
+	"log"
 	"time"
 )
 
@@ -310,7 +311,7 @@ func (s *userService) GetTeachers(ctx context.Context, token *token.Payload) (re
 	if err != nil {
 		return []dto.TeacherResponse{}, err
 	}
-
+	log.Println("ajunge")
 	for _, t := range teachers {
 		response = append(response, dto.TeacherResponse{UserID: t.UserID, UserName: t.FirstName + " " + t.LastName, UserRoleID: t.ID_2, RoleName: t.Name})
 	}

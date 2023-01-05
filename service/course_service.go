@@ -5,6 +5,7 @@ import (
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
+	"log"
 )
 
 type CourseService interface {
@@ -107,7 +108,7 @@ func (c *courseService) ChangeCourse(ctx context.Context, authToken *token.Paylo
 	if !CheckRolePresence(authToken.Role, c.roles[Director].ID) && !CheckRolePresence(authToken.Role, c.roles[SchoolManager].ID) {
 		return dto.CourseResponse{}, ErrUnAuthorized
 	}
-	updatedCourse, err := c.db.UpdateCourse(ctx, db.UpdateCourseParams{Name: req.Name, TeacherID: req.TeacherID, SemesterID: req.SemesterID, ClassID: req.ClassID})
+	updatedCourse, err := c.db.UpdateCourse(ctx, db.UpdateCourseParams{ID: req.CourseID, Name: req.Name, TeacherID: req.TeacherID, SemesterID: req.SemesterID, ClassID: req.ClassID})
 	if err != nil {
 		return dto.CourseResponse{}, err
 	}
@@ -115,19 +116,27 @@ func (c *courseService) ChangeCourse(ctx context.Context, authToken *token.Paylo
 	return response, err
 }
 
+// HERE I ASSUME ANY MARKS EXISTS
 func (c *courseService) GetCourseByID(ctx context.Context, authToken *token.Payload, req dto.GetCourseRequest) (dto.GetCourseMarksResponse, error) {
 	if CheckRolePresence(authToken.Role, c.roles[Admin].ID) {
 		return dto.GetCourseMarksResponse{}, ErrUnAuthorized
 	}
 	courseMarks, err := c.db.GetCourseMarks(ctx, req.CourseID)
 	if err != nil {
+		log.Println("aici")
 		return dto.GetCourseMarksResponse{}, err
 	}
+
+	if len(courseMarks) == 0 {
+		return dto.GetCourseMarksResponse{}, nil
+	}
+	var isTeacher = false
 
 	//we check that the teacher is teaching this subject
 	if CheckRolePresence(authToken.Role, c.roles[Teacher].ID) {
 		userRoles, err := c.db.GetUserRoleByUserId(ctx, authToken.UserID)
 		if err != nil {
+			log.Println("aici2")
 			return dto.GetCourseMarksResponse{}, err
 		}
 		var userRoleID int64
@@ -138,13 +147,16 @@ func (c *courseService) GetCourseByID(ctx context.Context, authToken *token.Payl
 			}
 		}
 		if courseMarks[0].TeacherID != userRoleID {
+
 			return dto.GetCourseMarksResponse{}, ErrUnAuthorized
 		}
+		isTeacher = true
 	}
 
 	// we check that the student or head teacher  belongs to the class of the course
-	if CheckRolePresence(authToken.Role, c.roles[Student].ID) || CheckRolePresence(authToken.Role, c.roles[HeadTeacher].ID) {
+	if CheckRolePresence(authToken.Role, c.roles[Student].ID) || (CheckRolePresence(authToken.Role, c.roles[HeadTeacher].ID) && isTeacher == false) {
 		if courseMarks[0].ClassID != authToken.ClassID {
+
 			return dto.GetCourseMarksResponse{}, ErrUnAuthorized
 		}
 	}

@@ -60,26 +60,36 @@ func (server *Server) setupRouter() {
 
 	courseRoutes := router.Group("/course").Use(authMiddleware(server.tokenMaker))
 
+	//works
 	courseRoutes.POST("", server.createCourse)
+	//works
 	courseRoutes.GET("", server.getCourses)
 	courseRoutes.GET("/:id", server.getCourseByID)
+	//works
 	courseRoutes.PUT("", server.changeCourse)
 
 	lessonRoutes := router.Group("/lesson").Use(authMiddleware(server.tokenMaker))
-
+	//works
 	lessonRoutes.POST("", server.createLesson)
+	//works ideal
 	lessonRoutes.GET("", server.getLessons)
+	//works
 	lessonRoutes.GET("/course/:id", server.getCourseLessonsByCourseID)
+	//TODO CORRECT DATES UPDATE
 	lessonRoutes.PUT("", server.changeLesson)
 
 	markRoutes := router.Group("/mark").Use(authMiddleware(server.tokenMaker))
-
+	//works
 	markRoutes.POST("", server.createMark)
+	//works
 	markRoutes.PUT("", server.changeMark)
-	markRoutes.DELETE("/course/:id", server.deleteMark)
+	//works
+	markRoutes.DELETE(":id", server.deleteMark)
 
-	router.POST("/roles", authMiddleware(server.tokenMaker), server.getRoles)
-	router.POST("/teachers", authMiddleware(server.tokenMaker), server.getTeacher)
+	//works
+	router.GET("/roles", authMiddleware(server.tokenMaker), server.getRoles)
+	//works
+	router.GET("/teachers", authMiddleware(server.tokenMaker), server.getTeacher)
 
 	server.router = router
 }
