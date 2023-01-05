@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"encoding/json"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"time"
 )
@@ -8,11 +9,45 @@ import (
 type CreateLessonRequest struct {
 	Name      string    `json:"name" binding:"required"`
 	CourseID  int64     `json:"course_id" binding:"required"`
-	StartHour time.Time `json:"start_hour" binding:"required ltefield=EndHour" time_format:"15:04"`
+	StartHour time.Time `json:"start_hour" binding:"required,ltefield=EndHour" time_format:"15:04"`
 	EndHour   time.Time `json:"end_hour" binding:"required" time_format:"15:04"`
 	WeekDay   string    `json:"week_day" binding:"required,oneof=Monday Tuesday Wednesday Thursday Friday Saturday Sunday"`
 	Classroom string    `json:"classroom"`
 }
+
+func (st *CreateLessonRequest) UnmarshalJSON(data []byte) error {
+	type parseType struct {
+		Name      string `json:"name" binding:"required"`
+		CourseID  int64  `json:"course_id" binding:"required"`
+		StartHour string `json:"start_hour" binding:"required`
+		EndHour   string `json:"end_hour" binding:"required"`
+		WeekDay   string `json:"week_day" binding:"required,oneof=Monday Tuesday Wednesday Thursday Friday Saturday Sunday"`
+		Classroom string `json:"classroom"`
+	}
+	var res parseType
+	if err := json.Unmarshal(data, &res); err != nil {
+		return err
+	}
+
+	parsedStartHour, err := time.Parse("15:04", res.StartHour)
+	if err != nil {
+		return err
+	}
+	parsedEndHour, err := time.Parse("15:04", res.EndHour)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now()
+	st.Name = res.Name
+	st.CourseID = res.CourseID
+	st.Classroom = res.Classroom
+	st.WeekDay = res.WeekDay
+	st.StartHour = time.Date(now.Year(), now.Month(), now.Day(), parsedStartHour.Hour(), parsedStartHour.Minute(), parsedStartHour.Second(), 0, now.Location())
+	st.EndHour = time.Date(now.Year(), now.Month(), now.Day(), parsedEndHour.Hour(), parsedEndHour.Minute(), parsedEndHour.Second(), 0, now.Location())
+	return nil
+}
+
 type LessonResponse struct {
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`

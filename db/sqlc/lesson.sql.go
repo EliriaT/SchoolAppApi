@@ -10,7 +10,6 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/lib/pq"
 )
 
 const createLesson = `-- name: CreateLesson :one
@@ -18,7 +17,7 @@ INSERT INTO "Lesson"(
     name,course_id,start_hour,end_hour, week_day, classroom
 )VALUES (
             $1,$2,$3,$4,$5,$6
-        ) RETURNING id, name, course_id, teacher_id, start_hour, end_hour, week_day, classroom, created_by, updated_by, created_at, updated_at
+        ) RETURNING id, name, course_id, start_hour, end_hour, week_day, classroom, created_by, updated_by, created_at, updated_at
 `
 
 type CreateLessonParams struct {
@@ -44,7 +43,6 @@ func (q *Queries) CreateLesson(ctx context.Context, arg CreateLessonParams) (Les
 		&i.ID,
 		&i.Name,
 		&i.CourseID,
-		&i.TeacherID,
 		&i.StartHour,
 		&i.EndHour,
 		&i.WeekDay,
@@ -58,7 +56,7 @@ func (q *Queries) CreateLesson(ctx context.Context, arg CreateLessonParams) (Les
 }
 
 const getClassSchedule = `-- name: GetClassSchedule :many
-SELECT "Lesson".id, "Lesson".name, course_id, "Lesson".teacher_id, start_hour, end_hour, week_day, classroom, "Lesson".created_by, "Lesson".updated_by, "Lesson".created_at, "Lesson".updated_at, "Course".id, "Course".name, "Course".teacher_id, semester_id, class_id, dates, "Course".created_by, "Course".updated_by, "Course".created_at, "Course".updated_at
+SELECT "Lesson".id, "Lesson".name, course_id, start_hour, end_hour, week_day, classroom, "Lesson".created_by, "Lesson".updated_by, "Lesson".created_at, "Lesson".updated_at, "Course".id, "Course".name, teacher_id, semester_id, class_id, dates, "Course".created_by, "Course".updated_by, "Course".created_at, "Course".updated_at
 FROM "Lesson"
 INNER JOIN "Course"
 ON  "Lesson".course_id = "Course".id AND "Course".class_id = $1
@@ -68,7 +66,6 @@ type GetClassScheduleRow struct {
 	ID          int64          `json:"id"`
 	Name        string         `json:"name"`
 	CourseID    int64          `json:"courseID"`
-	TeacherID   int64          `json:"teacherID"`
 	StartHour   time.Time      `json:"startHour"`
 	EndHour     time.Time      `json:"endHour"`
 	WeekDay     string         `json:"weekDay"`
@@ -79,7 +76,7 @@ type GetClassScheduleRow struct {
 	UpdatedAt   sql.NullTime   `json:"updatedAt"`
 	ID_2        int64          `json:"id2"`
 	Name_2      string         `json:"name2"`
-	TeacherID_2 int64          `json:"teacherID2"`
+	TeacherID   int64          `json:"teacherID"`
 	SemesterID  int64          `json:"semesterID"`
 	ClassID     int64          `json:"classID"`
 	Dates       []time.Time    `json:"dates"`
@@ -90,6 +87,7 @@ type GetClassScheduleRow struct {
 }
 
 func (q *Queries) GetClassSchedule(ctx context.Context, classID int64) ([]GetClassScheduleRow, error) {
+	var times PgTimeArray
 	rows, err := q.db.QueryContext(ctx, getClassSchedule, classID)
 	if err != nil {
 		return nil, err
@@ -102,7 +100,6 @@ func (q *Queries) GetClassSchedule(ctx context.Context, classID int64) ([]GetCla
 			&i.ID,
 			&i.Name,
 			&i.CourseID,
-			&i.TeacherID,
 			&i.StartHour,
 			&i.EndHour,
 			&i.WeekDay,
@@ -113,10 +110,10 @@ func (q *Queries) GetClassSchedule(ctx context.Context, classID int64) ([]GetCla
 			&i.UpdatedAt,
 			&i.ID_2,
 			&i.Name_2,
-			&i.TeacherID_2,
+			&i.TeacherID,
 			&i.SemesterID,
 			&i.ClassID,
-			pq.Array(&i.Dates),
+			&times,
 			&i.CreatedBy_2,
 			&i.UpdatedBy_2,
 			&i.CreatedAt_2,
@@ -136,7 +133,7 @@ func (q *Queries) GetClassSchedule(ctx context.Context, classID int64) ([]GetCla
 }
 
 const getLessonsOfCourse = `-- name: GetLessonsOfCourse :many
-SELECT id, name, course_id, teacher_id, start_hour, end_hour, week_day, classroom, created_by, updated_by, created_at, updated_at FROM "Lesson"
+SELECT id, name, course_id, start_hour, end_hour, week_day, classroom, created_by, updated_by, created_at, updated_at FROM "Lesson"
 WHERE course_id = $1
 `
 
@@ -153,7 +150,6 @@ func (q *Queries) GetLessonsOfCourse(ctx context.Context, courseID int64) ([]Les
 			&i.ID,
 			&i.Name,
 			&i.CourseID,
-			&i.TeacherID,
 			&i.StartHour,
 			&i.EndHour,
 			&i.WeekDay,
@@ -177,7 +173,7 @@ func (q *Queries) GetLessonsOfCourse(ctx context.Context, courseID int64) ([]Les
 }
 
 const getTeacherSchedule = `-- name: GetTeacherSchedule :many
-SELECT "Lesson".id, "Lesson".name, course_id, "Lesson".teacher_id, start_hour, end_hour, week_day, classroom, "Lesson".created_by, "Lesson".updated_by, "Lesson".created_at, "Lesson".updated_at, "Course".id, "Course".name, "Course".teacher_id, semester_id, class_id, dates, "Course".created_by, "Course".updated_by, "Course".created_at, "Course".updated_at
+SELECT "Lesson".id, "Lesson".name, course_id, start_hour, end_hour, week_day, classroom, "Lesson".created_by, "Lesson".updated_by, "Lesson".created_at, "Lesson".updated_at, "Course".id, "Course".name, teacher_id, semester_id, class_id, dates, "Course".created_by, "Course".updated_by, "Course".created_at, "Course".updated_at
 FROM "Lesson"
 INNER JOIN "Course"
 ON  "Lesson".course_id = "Course".id AND "Course".teacher_id = $1
@@ -187,7 +183,6 @@ type GetTeacherScheduleRow struct {
 	ID          int64          `json:"id"`
 	Name        string         `json:"name"`
 	CourseID    int64          `json:"courseID"`
-	TeacherID   int64          `json:"teacherID"`
 	StartHour   time.Time      `json:"startHour"`
 	EndHour     time.Time      `json:"endHour"`
 	WeekDay     string         `json:"weekDay"`
@@ -198,7 +193,7 @@ type GetTeacherScheduleRow struct {
 	UpdatedAt   sql.NullTime   `json:"updatedAt"`
 	ID_2        int64          `json:"id2"`
 	Name_2      string         `json:"name2"`
-	TeacherID_2 int64          `json:"teacherID2"`
+	TeacherID   int64          `json:"teacherID"`
 	SemesterID  int64          `json:"semesterID"`
 	ClassID     int64          `json:"classID"`
 	Dates       []time.Time    `json:"dates"`
@@ -209,6 +204,7 @@ type GetTeacherScheduleRow struct {
 }
 
 func (q *Queries) GetTeacherSchedule(ctx context.Context, teacherID int64) ([]GetTeacherScheduleRow, error) {
+	var times PgTimeArray
 	rows, err := q.db.QueryContext(ctx, getTeacherSchedule, teacherID)
 	if err != nil {
 		return nil, err
@@ -221,7 +217,6 @@ func (q *Queries) GetTeacherSchedule(ctx context.Context, teacherID int64) ([]Ge
 			&i.ID,
 			&i.Name,
 			&i.CourseID,
-			&i.TeacherID,
 			&i.StartHour,
 			&i.EndHour,
 			&i.WeekDay,
@@ -232,10 +227,10 @@ func (q *Queries) GetTeacherSchedule(ctx context.Context, teacherID int64) ([]Ge
 			&i.UpdatedAt,
 			&i.ID_2,
 			&i.Name_2,
-			&i.TeacherID_2,
+			&i.TeacherID,
 			&i.SemesterID,
 			&i.ClassID,
-			pq.Array(&i.Dates),
+			&times,
 			&i.CreatedBy_2,
 			&i.UpdatedBy_2,
 			&i.CreatedAt_2,
@@ -258,7 +253,7 @@ const updateLesson = `-- name: UpdateLesson :one
 UPDATE  "Lesson"
 SET  start_hour= $2,end_hour=$3, week_day=$4,classroom=$5,updated_at = now()
 where id = $1
-RETURNING id, name, course_id, teacher_id, start_hour, end_hour, week_day, classroom, created_by, updated_by, created_at, updated_at
+RETURNING id, name, course_id, start_hour, end_hour, week_day, classroom, created_by, updated_by, created_at, updated_at
 `
 
 type UpdateLessonParams struct {
@@ -282,7 +277,6 @@ func (q *Queries) UpdateLesson(ctx context.Context, arg UpdateLessonParams) (Les
 		&i.ID,
 		&i.Name,
 		&i.CourseID,
-		&i.TeacherID,
 		&i.StartHour,
 		&i.EndHour,
 		&i.WeekDay,

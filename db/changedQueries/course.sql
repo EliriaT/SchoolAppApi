@@ -33,6 +33,16 @@ ORDER BY name;
 
 -- name: UpdateCourse :one
 UPDATE  "Course"
-SET  teacher_id = $2, name = $1,semester_id=$3,class_id = $4,updated_at = now()
+SET  teacher_id = $3, name = $2,semester_id=$5,class_id = $4,updated_at = now()
 where id = $1
 RETURNING *;
+
+-- name: GetCourseMarks :many
+SELECT * FROM "Marks"
+                  INNER JOIN "Course"
+                             ON  "Course".id = "Marks".course_id AND "Course".id = $1;
+
+-- name: GetStudentCourseMarks :many
+SELECT * FROM "Marks"
+                  INNER JOIN "Course"
+                             ON  "Course".id = "Marks".course_id AND "Course".id = $1 AND "Marks".student_id = $2;

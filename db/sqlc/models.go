@@ -36,7 +36,6 @@ type Lesson struct {
 	ID        int64          `json:"id"`
 	Name      string         `json:"name"`
 	CourseID  int64          `json:"courseID"`
-	TeacherID int64          `json:"teacherID"`
 	StartHour time.Time      `json:"startHour"`
 	EndHour   time.Time      `json:"endHour"`
 	WeekDay   string         `json:"weekDay"`

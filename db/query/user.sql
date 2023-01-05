@@ -35,7 +35,7 @@ Select * from "User"
 INNER JOIN "UserRoles"
 ON  "User".id = "UserRoles".user_id and "UserRoles".school_id = $1
 INNER JOIN "Role"
-ON  "UserRoles".role_id = "Role".id and ("Role".name = "Teacher" or "Role".name = "Director" or "Role".name = "School_Manager")
+ON  "UserRoles".role_id = "Role".id and ("Role".name = 'Teacher' or "Role".name = 'Director' or "Role".name = 'School_Manager')
 LEFT JOIN "UserRoleClass"
 on "UserRoleClass".user_role_id = "UserRoles".id
 WHERE "UserRoleClass".user_role_id is Null;

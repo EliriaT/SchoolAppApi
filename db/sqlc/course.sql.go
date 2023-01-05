@@ -9,7 +9,6 @@ import (
 	"context"
 	"database/sql"
 	"time"
-
 	"github.com/lib/pq"
 )
 
@@ -57,6 +56,7 @@ WHERE id = $1
 `
 
 func (q *Queries) GetCourseByID(ctx context.Context, id int64) (Course, error) {
+	var times PgTimeArray
 	row := q.db.QueryRowContext(ctx, getCourseByID, id)
 	var i Course
 	err := row.Scan(
@@ -65,12 +65,16 @@ func (q *Queries) GetCourseByID(ctx context.Context, id int64) (Course, error) {
 		&i.TeacherID,
 		&i.SemesterID,
 		&i.ClassID,
-		pq.Array(&i.Dates),
+		&times,
 		&i.CreatedBy,
 		&i.UpdatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
+
+ 	for _, t:= range times{
+		 i.Dates = append(i.Dates,t.Time)
+	}
 	return i, err
 }
 
@@ -99,6 +103,7 @@ type GetCoursesOfSchoolRow struct {
 }
 
 func (q *Queries) GetCoursesOfSchool(ctx context.Context, schoolID int64) ([]GetCoursesOfSchoolRow, error) {
+	var times PgTimeArray
 	rows, err := q.db.QueryContext(ctx, getCoursesOfSchool, schoolID)
 	if err != nil {
 		return nil, err
@@ -113,7 +118,7 @@ func (q *Queries) GetCoursesOfSchool(ctx context.Context, schoolID int64) ([]Get
 			&i.TeacherID,
 			&i.SemesterID,
 			&i.ClassID,
-			pq.Array(&i.Dates),
+			&times,
 			&i.CreatedBy,
 			&i.UpdatedBy,
 			&i.CreatedAt,
@@ -143,6 +148,7 @@ ORDER BY name
 `
 
 func (q *Queries) ListCoursesOfClass(ctx context.Context, classID int64) ([]Course, error) {
+	var times PgTimeArray
 	rows, err := q.db.QueryContext(ctx, listCoursesOfClass, classID)
 	if err != nil {
 		return nil, err
@@ -157,7 +163,7 @@ func (q *Queries) ListCoursesOfClass(ctx context.Context, classID int64) ([]Cour
 			&i.TeacherID,
 			&i.SemesterID,
 			&i.ClassID,
-			pq.Array(&i.Dates),
+			&times,
 			&i.CreatedBy,
 			&i.UpdatedBy,
 			&i.CreatedAt,
@@ -183,6 +189,7 @@ ORDER BY name
 `
 
 func (q *Queries) ListCoursesOfTeacher(ctx context.Context, teacherID int64) ([]Course, error) {
+	var times PgTimeArray
 	rows, err := q.db.QueryContext(ctx, listCoursesOfTeacher, teacherID)
 	if err != nil {
 		return nil, err
@@ -197,7 +204,7 @@ func (q *Queries) ListCoursesOfTeacher(ctx context.Context, teacherID int64) ([]
 			&i.TeacherID,
 			&i.SemesterID,
 			&i.ClassID,
-			pq.Array(&i.Dates),
+			&times,
 			&i.CreatedBy,
 			&i.UpdatedBy,
 			&i.CreatedAt,
@@ -218,24 +225,26 @@ func (q *Queries) ListCoursesOfTeacher(ctx context.Context, teacherID int64) ([]
 
 const updateCourse = `-- name: UpdateCourse :one
 UPDATE  "Course"
-SET  teacher_id = $2, name = $1,semester_id=$3,class_id = $4,updated_at = now()
+SET  teacher_id = $3, name = $2,semester_id=$5,class_id = $4,updated_at = now()
 where id = $1
 RETURNING id, name, teacher_id, semester_id, class_id, dates, created_by, updated_by, created_at, updated_at
 `
 
 type UpdateCourseParams struct {
+	ID         int64  `json:"id"`
 	Name       string `json:"name"`
 	TeacherID  int64  `json:"teacherID"`
-	SemesterID int64  `json:"semesterID"`
 	ClassID    int64  `json:"classID"`
+	SemesterID int64  `json:"semesterID"`
 }
 
 func (q *Queries) UpdateCourse(ctx context.Context, arg UpdateCourseParams) (Course, error) {
 	row := q.db.QueryRowContext(ctx, updateCourse,
+		arg.ID,
 		arg.Name,
 		arg.TeacherID,
-		arg.SemesterID,
 		arg.ClassID,
+		arg.SemesterID,
 	)
 	var i Course
 	err := row.Scan(
@@ -266,19 +275,192 @@ type UpdateCourseDatesParams struct {
 }
 
 func (q *Queries) UpdateCourseDates(ctx context.Context, arg UpdateCourseDatesParams) (Course, error) {
+	var times PgTimeArray
 	row := q.db.QueryRowContext(ctx, updateCourseDates, arg.ID, pq.Array(arg.Dates))
 	var i Course
+
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.TeacherID,
 		&i.SemesterID,
 		&i.ClassID,
-		pq.Array(&i.Dates),
+		&times,
 		&i.CreatedBy,
 		&i.UpdatedBy,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
+	for _, t:= range times{
+		i.Dates = append(i.Dates,t.Time)
+	}
 	return i, err
+}
+
+const getCourseMarks = `-- name: GetCourseMarks :many
+SELECT "Marks".id, course_id, mark_date, is_absent, mark, student_id, "Marks".created_by, "Marks".updated_by, "Marks".created_at, "Marks".updated_at, "Course".id, name, teacher_id, semester_id, class_id, dates, "Course".created_by, "Course".updated_by, "Course".created_at, "Course".updated_at FROM "Marks"
+INNER JOIN "Course"
+ON  "Course".id = "Marks".course_id AND "Course".id = $1
+`
+
+type GetCourseMarksRow struct {
+	ID          int64         `json:"id"`
+	CourseID    int64         `json:"courseID"`
+	MarkDate    time.Time     `json:"markDate"`
+	IsAbsent    sql.NullBool  `json:"isAbsent"`
+	Mark        sql.NullInt32 `json:"mark"`
+	StudentID   int64         `json:"studentID"`
+	CreatedBy   sql.NullInt64 `json:"createdBy"`
+	UpdatedBy   sql.NullInt64 `json:"updatedBy"`
+	CreatedAt   sql.NullTime  `json:"createdAt"`
+	UpdatedAt   sql.NullTime  `json:"updatedAt"`
+	ID_2        int64         `json:"id2"`
+	Name        string        `json:"name"`
+	TeacherID   int64         `json:"teacherID"`
+	SemesterID  int64         `json:"semesterID"`
+	ClassID     int64         `json:"classID"`
+	Dates       []time.Time   `json:"dates"`
+	CreatedBy_2 sql.NullInt64 `json:"createdBy2"`
+	UpdatedBy_2 sql.NullInt64 `json:"updatedBy2"`
+	CreatedAt_2 sql.NullTime  `json:"createdAt2"`
+	UpdatedAt_2 sql.NullTime  `json:"updatedAt2"`
+}
+
+func (q *Queries) GetCourseMarks(ctx context.Context, id int64) ([]GetCourseMarksRow, error) {
+	var times PgTimeArray
+	rows, err := q.db.QueryContext(ctx, getCourseMarks, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetCourseMarksRow{}
+	for rows.Next() {
+		var i GetCourseMarksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CourseID,
+			&i.MarkDate,
+			&i.IsAbsent,
+			&i.Mark,
+			&i.StudentID,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID_2,
+			&i.Name,
+			&i.TeacherID,
+			&i.SemesterID,
+			&i.ClassID,
+			&times,
+			&i.CreatedBy_2,
+			&i.UpdatedBy_2,
+			&i.CreatedAt_2,
+			&i.UpdatedAt_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	var timesArray []time.Time
+	for _, t:= range times{
+		timesArray = append(timesArray,t.Time)
+	}
+	for i:= range items{
+		items[i].Dates = timesArray
+	}
+	return items, nil
+}
+
+const getStudentCourseMarks = `-- name: GetStudentCourseMarks :many
+SELECT "Marks".id, course_id, mark_date, is_absent, mark, student_id, "Marks".created_by, "Marks".updated_by, "Marks".created_at, "Marks".updated_at, "Course".id, name, teacher_id, semester_id, class_id, dates, "Course".created_by, "Course".updated_by, "Course".created_at, "Course".updated_at FROM "Marks"
+INNER JOIN "Course"
+ON  "Course".id = "Marks".course_id AND "Course".id = $1 AND "Marks".student_id = $2
+`
+
+type GetStudentCourseMarksParams struct {
+	ID        int64 `json:"id"`
+	StudentID int64 `json:"studentID"`
+}
+
+type GetStudentCourseMarksRow struct {
+	ID          int64         `json:"id"`
+	CourseID    int64         `json:"courseID"`
+	MarkDate    time.Time     `json:"markDate"`
+	IsAbsent    sql.NullBool  `json:"isAbsent"`
+	Mark        sql.NullInt32 `json:"mark"`
+	StudentID   int64         `json:"studentID"`
+	CreatedBy   sql.NullInt64 `json:"createdBy"`
+	UpdatedBy   sql.NullInt64 `json:"updatedBy"`
+	CreatedAt   sql.NullTime  `json:"createdAt"`
+	UpdatedAt   sql.NullTime  `json:"updatedAt"`
+	ID_2        int64         `json:"id2"`
+	Name        string        `json:"name"`
+	TeacherID   int64         `json:"teacherID"`
+	SemesterID  int64         `json:"semesterID"`
+	ClassID     int64         `json:"classID"`
+	Dates       []time.Time   `json:"dates"`
+	CreatedBy_2 sql.NullInt64 `json:"createdBy2"`
+	UpdatedBy_2 sql.NullInt64 `json:"updatedBy2"`
+	CreatedAt_2 sql.NullTime  `json:"createdAt2"`
+	UpdatedAt_2 sql.NullTime  `json:"updatedAt2"`
+}
+
+func (q *Queries) GetStudentCourseMarks(ctx context.Context, arg GetStudentCourseMarksParams) ([]GetStudentCourseMarksRow, error) {
+	var times PgTimeArray
+	rows, err := q.db.QueryContext(ctx, getStudentCourseMarks, arg.ID, arg.StudentID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetStudentCourseMarksRow{}
+	for rows.Next() {
+		var i GetStudentCourseMarksRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CourseID,
+			&i.MarkDate,
+			&i.IsAbsent,
+			&i.Mark,
+			&i.StudentID,
+			&i.CreatedBy,
+			&i.UpdatedBy,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID_2,
+			&i.Name,
+			&i.TeacherID,
+			&i.SemesterID,
+			&i.ClassID,
+			&times,
+			&i.CreatedBy_2,
+			&i.UpdatedBy_2,
+			&i.CreatedAt_2,
+			&i.UpdatedAt_2,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	var timesArray []time.Time
+	for _, t:= range times{
+		timesArray = append(timesArray,t.Time)
+	}
+	for i:= range items{
+		items[i].Dates = timesArray
+	}
+	return items, nil
 }
