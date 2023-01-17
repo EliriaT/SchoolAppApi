@@ -1,13 +1,12 @@
-package email
+package service
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/matcornic/hermes/v2"
 	"log"
 	"net/mail"
 	"net/smtp"
-
-	"github.com/matcornic/hermes/v2"
 )
 
 const (
