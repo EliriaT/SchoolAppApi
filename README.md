@@ -21,3 +21,9 @@ To create the School database :
  To run the tests:
  
  `make test`
+
+`docker build -t school-api:latest .`
+
+`docker run --name school-api -p 8080:8080 -e GIN_MODE=release -e DB_SOURCE="postgresql://root:secret@172.17.0.3:5432/school?sslmode=disable" school-api:latest`
+
+`docker network create school-network`
