@@ -31,5 +31,7 @@ jobs:
           REPOSITORY: school
           IMAGE_TAG: ${{ github.sha }}
         run: |
+          touch app.env
+          echo ${{ secrets.APP_ENV_CONTENT }} >> app.env
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
