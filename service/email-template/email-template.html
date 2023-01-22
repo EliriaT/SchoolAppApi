@@ -1,0 +1,59 @@
+Subject: Enrollment on scoala-mea.link
+MIME-Version: 1.0
+Content-Type: multipart/alternative; boundary="alternative_boundary"
+
+This is a message with multiple parts in MIME format.
+
+--alternative_boundary
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+test
+
+--
+[Picture of a Christmas Tree]
+
+--alternative_boundary
+Content-Type: multipart/related; boundary="related_boundary"
+
+--related_boundary
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+</head>
+<body>
+<H1>Hello {{.Name}}, </H1>
+<H2> You have been registered successfully to school <b>{{.School}}</b> with the role of <b>{{.Role}} .</b></H2>
+<span>Please, login to <a href="scoala-mea.link">scoala-mea.link</a> , with this email and with the following password: </span><br/>
+<h4>Email: {{.Email}}</h4>
+<h4>Password: {{.Password}}</h4>
+<span>The two factor authentication is by default turned on, so please follow this steps to set it up: </span><br/>
+<ol>
+    <li> Download on your phone an Authenticator app, such as <b>Google Authenticator</b>, <b>Microsoft Authenticator</b>, or <b>Twilio Authy Authenticator</b></li>
+    <li> Open the app, and scan the following QR Code provided in this e-mail </li>
+    <li> On the first login, and the following ones, you will be asked to provide a one-time code. This code is valid only 60 seconds, and you can see it in the <b>Authenticator app</b> .</li>
+</ol>
+<p class="sig">-- <br><img src="cid:0123456789"></p>
+</body>
+</html>
+
+--related_boundary
+Content-Type: image/png; name="sig.png"
+Content-Disposition: inline; filename="sig.png"
+Content-Location: sig.png
+Content-ID: <0123456789>
+Content-Transfer-Encoding: base64
+
+{{.QRCode}}
+
+--related_boundary--
+
+--alternative_boundary--

@@ -2,6 +2,7 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/service"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
@@ -11,6 +12,8 @@ import (
 	"log"
 	"net/http"
 )
+
+var incorrectCredentialsError = errors.New("Incorrect email or password")
 
 func (server *Server) createUser(ctx *gin.Context) {
 	var req dto.CreateUserRequest
@@ -63,10 +66,10 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	response, roles, schoolID, classID, err := server.service.Login(ctx, req)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			ctx.JSON(http.StatusNotFound, errorResponse(incorrectCredentialsError))
 			return
 		} else if err == bcrypt.ErrMismatchedHashAndPassword {
-			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			ctx.JSON(http.StatusNotFound, errorResponse(incorrectCredentialsError))
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -130,4 +133,27 @@ func (server *Server) getTeacher(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, response)
+}
+
+func (server *Server) recoverAccount(ctx *gin.Context) {
+	var req dto.AccountRecoveryRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	//err := server.service.ChangePassword(ctx, req.Email)
+	//if err != nil {
+	//	ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+	//	return
+	//}
+	//
+	//authToken, err := server.tokenMaker.AuthenticateToken(*authPayload)
+	//if err != nil {
+	//	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	//	return
+	//}
+	//
+	//response.AccessToken = authToken
+	//ctx.JSON(http.StatusOK, response)
 }

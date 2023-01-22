@@ -5,14 +5,21 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
+	emailverifier "github.com/AfterShip/email-verifier"
 	"github.com/EliriaT/SchoolAppApi/api/token"
+	"github.com/EliriaT/SchoolAppApi/config"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
+	passwordvalidator "github.com/wagslane/go-password-validator"
+	"io"
+
 	"github.com/lib/pq"
 	"github.com/pquerna/otp/totp"
 	"image/png"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -20,8 +27,11 @@ var (
 	//ErrWrongOTPCode = errors.New("wrong OTP provided")
 	ErrUnAuthorized = errors.New("Not authorized")
 	ErrBadRequest   = errors.New("Bad request")
+	ErrInvalidEmail = errors.New("Invalid email provided")
 	//ErrServer       = errors.New("Internal Server Error")
 )
+
+const minEntropy = 60
 
 type UserService interface {
 	Register(ctx context.Context, token *token.Payload, req dto.CreateUserRequest) (dto.UserResponse, error)
@@ -29,13 +39,17 @@ type UserService interface {
 	CreateAdmin() error
 	CheckTOTP(ctx context.Context, token *token.Payload, req dto.CheckTOTPRequest) (response dto.LoginUserResponse, err error)
 	GetTeachers(ctx context.Context, token *token.Payload) (response []dto.TeacherResponse, err error)
+	ChangePassword(ctx context.Context, email string) (err error)
+	VerifyEmail(email string) (err error)
 }
 
 type userService struct {
 	RolesService
 	ClassService
-	db    db.Store
-	roles map[string]db.Role
+	EmailService
+	db            db.Store
+	roles         map[string]db.Role
+	emailVerifier *emailverifier.Verifier
 }
 
 // TODO uuid Roles should be hidden by uuid
@@ -74,7 +88,7 @@ func (s *userService) Register(ctx context.Context, authToken *token.Payload, re
 	}
 
 	// Check the assigned role
-	_, err = s.db.GetRolebyId(ctx, req.RoleID)
+	roleEntity, err := s.db.GetRolebyId(ctx, req.RoleID)
 	if err != nil {
 		return dto.UserResponse{}, err
 	}
@@ -95,6 +109,14 @@ func (s *userService) Register(ctx context.Context, authToken *token.Payload, re
 	//Head Teacher -> student in his class
 	if (CheckRolePresence(authToken.Role, s.roles[HeadTeacher].ID)) && (req.RoleID != s.roles[Student].ID) {
 		return dto.UserResponse{}, ErrUnAuthorized
+	}
+
+	//Head Teacher -> student in his class
+	if (CheckRolePresence(authToken.Role, s.roles[HeadTeacher].ID)) && (req.RoleID == s.roles[Student].ID) {
+		if authToken.ClassID != req.ClassID {
+			return dto.UserResponse{}, ErrUnAuthorized
+		}
+
 	}
 
 	// Check that the class is provided only if request role is Student
@@ -169,6 +191,11 @@ func (s *userService) Register(ctx context.Context, authToken *token.Payload, re
 	response.UserClass = userRoleClass.ClassID
 	response.UserRole = userRole.RoleID
 	response.UserSchool = school.ID
+
+	err = s.SendRegisterEmail(user.FirstName+" "+user.LastName, school.Name, roleEntity.Name, user.Password, qrimage, user.Email)
+	if err != nil {
+		return dto.UserResponse{}, ErrSendingEmail
+	}
 	return response, err
 }
 
@@ -318,9 +345,60 @@ func (s *userService) GetTeachers(ctx context.Context, token *token.Payload) (re
 	return
 }
 
-func NewUserService(database db.Store, mapRoles map[string]db.Role) UserService {
+func (s *userService) ChangePassword(ctx context.Context, email string) (err error) {
+	_, err = s.db.GetUserbyEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *userService) VerifyEmail(email string) (err error) {
+	result, err := s.emailVerifier.Verify(email)
+	if err != nil {
+		return err
+	}
+	if !result.Syntax.Valid || result.Disposable || result.Suggestion != "" || result.Reachable == "no" || !result.HasMxRecords {
+		return ErrInvalidEmail
+	}
+	return nil
+}
+
+func (s *userService) ValidatePasswords(password string) error {
+	err := passwordvalidator.Validate(password, minEntropy)
+	return err
+}
+
+func NewUserService(database db.Store, mapRoles map[string]db.Role, configSet config.Config) UserService {
+	ev := setupEmailVerifier()
 
 	return &userService{db: database, roles: mapRoles,
-		RolesService: NewRolesService(database, mapRoles),
-		ClassService: NewClassService(database, mapRoles)}
+		RolesService:  NewRolesService(database, mapRoles),
+		ClassService:  NewClassService(database, mapRoles),
+		EmailService:  NewEmailService(configSet.EmailServerLogin, configSet.EmailServerPassword),
+		emailVerifier: ev}
+}
+
+func setupEmailVerifier() *emailverifier.Verifier {
+	ev := emailverifier.NewVerifier()
+	ev.EnableDomainSuggest()
+	resp, err := http.Get("https://disposable.github.io/disposable-email-domains/domains.json")
+	if err != nil {
+		log.Println("Error Downloading disposable email domains list")
+	}
+	defer resp.Body.Close()
+	var disposableEmailDomains = make([]string, 0, 5000)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = json.Unmarshal(respBody, &disposableEmailDomains)
+	if err != nil {
+		log.Println(err)
+	}
+
+	ev.AddDisposableDomains(disposableEmailDomains)
+	return ev
 }

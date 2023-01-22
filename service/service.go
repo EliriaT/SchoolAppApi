@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/EliriaT/SchoolAppApi/config"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 )
 
@@ -27,7 +28,7 @@ type ServerService struct {
 	MarkService
 }
 
-func NewServerService(database db.Store) (Service, error) {
+func NewServerService(database db.Store, configSet config.Config) (Service, error) {
 
 	userRoles, err := database.GetRoles(context.TODO())
 	if err != nil {
@@ -38,7 +39,7 @@ func NewServerService(database db.Store) (Service, error) {
 		mapRoles[r.Name] = r
 	}
 
-	return &ServerService{UserService: NewUserService(database, mapRoles),
+	return &ServerService{UserService: NewUserService(database, mapRoles, configSet),
 		SchoolService:   NewSchoolService(database, mapRoles),
 		RolesService:    NewRolesService(database, mapRoles),
 		ClassService:    NewClassService(database, mapRoles),

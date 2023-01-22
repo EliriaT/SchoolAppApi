@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"github.com/EliriaT/SchoolAppApi/api/handlers"
+	api "github.com/EliriaT/SchoolAppApi/api/handlers"
 	"github.com/EliriaT/SchoolAppApi/config"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/EliriaT/SchoolAppApi/service"
@@ -23,7 +23,7 @@ func main() {
 
 	store := db.NewStore(conn)
 
-	serverService, err := service.NewServerService(store)
+	serverService, err := service.NewServerService(store, configSet)
 	if err != nil {
 		log.Fatal("cannot create create service", err)
 	}
