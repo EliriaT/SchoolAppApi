@@ -25,7 +25,13 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 
-	response, err := server.service.Register(ctx, authPayload, req)
+	tokenPassReset, err := server.tokenMaker.CreatePasswordRecoveryToken(req.Email, server.config.EmailRecoveryTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	response, err := server.service.Register(ctx, authPayload, req, tokenPassReset)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok {
 			switch pqErr.Code.Name() {
@@ -66,10 +72,10 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	response, roles, schoolID, classID, err := server.service.Login(ctx, req)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			ctx.JSON(http.StatusNotFound, errorResponse(incorrectCredentialsError))
+			ctx.JSON(http.StatusUnauthorized, errorResponse(incorrectCredentialsError))
 			return
 		} else if err == bcrypt.ErrMismatchedHashAndPassword {
-			ctx.JSON(http.StatusNotFound, errorResponse(incorrectCredentialsError))
+			ctx.JSON(http.StatusUnauthorized, errorResponse(incorrectCredentialsError))
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -135,25 +141,67 @@ func (server *Server) getTeacher(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (server *Server) recoverAccount(ctx *gin.Context) {
+func (server *Server) recoverAndChangePassword(ctx *gin.Context) {
+	var req dto.PasswordChangeURIRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	passwordPayload, err := server.tokenMaker.VerifyPasswordToken(req.Token)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+	if passwordPayload.Email != req.Email {
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
+
+	var jsonReq dto.PasswordChangeRequest
+	if err := ctx.ShouldBindJSON(&jsonReq); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	err = server.service.ChangePassword(ctx, req.Email, jsonReq.Password)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			return
+		} else if err == service.ErrEasyPassword {
+			ctx.JSON(http.StatusBadRequest, errorResponse(service.ErrEasyPassword))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.String(http.StatusOK, "Your password was reset!")
+}
+
+func (server *Server) accountRecoveryRequest(ctx *gin.Context) {
 	var req dto.AccountRecoveryRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+	resetToken, err := server.tokenMaker.CreatePasswordRecoveryToken(req.Email, server.config.EmailRecoveryTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
-	//err := server.service.ChangePassword(ctx, req.Email)
-	//if err != nil {
-	//	ctx.JSON(http.StatusUnauthorized, errorResponse(err))
-	//	return
-	//}
-	//
-	//authToken, err := server.tokenMaker.AuthenticateToken(*authPayload)
-	//if err != nil {
-	//	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	//	return
-	//}
-	//
-	//response.AccessToken = authToken
-	//ctx.JSON(http.StatusOK, response)
+	link := server.service.CreatePasswordRecoveryLink(resetToken, req.Email)
+	err = server.service.SendChangePasswordEmail(link, req.Email)
+	if err != nil {
+		if err == service.ErrInvalidEmail {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	ctx.String(http.StatusOK, "Please check your email, for a reset password link")
+
 }

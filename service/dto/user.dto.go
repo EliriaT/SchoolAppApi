@@ -9,8 +9,8 @@ import (
 // When the User is created, if it is admin, it will indicate the school of the director/manager. Otherwise, the school is taken from the token.
 // The class is indicated only for students. Teachers and Head Teachers are assigned separately.
 type CreateUserRequest struct {
-	Email       string    `json:"email" binding:"required,email"`
-	Password    string    `json:"password" binding:"required,min=6"`
+	Email string `json:"email" binding:"required,email"`
+	//Password    string    `json:"password" binding:"required,min=10"`
 	LastName    string    `json:"lastName" binding:"required,alpha"`
 	FirstName   string    `json:"firstName"  binding:"required,alpha"`
 	Gender      string    `json:"gender" binding:"required,oneof=F M"`
@@ -78,6 +78,15 @@ type CheckTOTPResponse struct {
 
 type AccountRecoveryRequest struct {
 	Email string `json:"email"`
+}
+
+type PasswordChangeURIRequest struct {
+	Email string `uri:"email" binding:"required,email"`
+	Token string `uri:"token" binding:"required"`
+}
+
+type PasswordChangeRequest struct {
+	Password string `json:"password" binding:"required,min=10"`
 }
 
 type TeacherResponse struct {

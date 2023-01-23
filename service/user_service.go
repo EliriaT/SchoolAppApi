@@ -12,8 +12,10 @@ import (
 	"github.com/EliriaT/SchoolAppApi/config"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
+	"github.com/sethvargo/go-password/password"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 	"io"
+	"unicode"
 
 	"github.com/lib/pq"
 	"github.com/pquerna/otp/totp"
@@ -28,19 +30,23 @@ var (
 	ErrUnAuthorized = errors.New("Not authorized")
 	ErrBadRequest   = errors.New("Bad request")
 	ErrInvalidEmail = errors.New("Invalid email provided")
-	//ErrServer       = errors.New("Internal Server Error")
+	ErrEasyPassword = errors.New("The password is not enough complex")
 )
 
 const minEntropy = 60
 
 type UserService interface {
-	Register(ctx context.Context, token *token.Payload, req dto.CreateUserRequest) (dto.UserResponse, error)
+	Register(ctx context.Context, token *token.Payload, req dto.CreateUserRequest, tokenPassReset string) (dto.UserResponse, error)
 	Login(ctx context.Context, req dto.LoginUserRequest) (response dto.LoginUserResponse, roles []int64, schoolID int64, ClassID int64, err error)
 	CreateAdmin() error
 	CheckTOTP(ctx context.Context, token *token.Payload, req dto.CheckTOTPRequest) (response dto.LoginUserResponse, err error)
 	GetTeachers(ctx context.Context, token *token.Payload) (response []dto.TeacherResponse, err error)
-	ChangePassword(ctx context.Context, email string) (err error)
+	// this will change the password
+	ChangePassword(ctx context.Context, email string, password string) (err error)
+
 	VerifyEmail(email string) (err error)
+	ValidatePasswords(password string) error
+	CreatePasswordRecoveryLink(token string, email string) (link string)
 }
 
 type userService struct {
@@ -50,11 +56,12 @@ type userService struct {
 	db            db.Store
 	roles         map[string]db.Role
 	emailVerifier *emailverifier.Verifier
+	configSet     config.Config
 }
 
 // TODO uuid Roles should be hidden by uuid
 
-func (s *userService) Register(ctx context.Context, authToken *token.Payload, req dto.CreateUserRequest) (dto.UserResponse, error) {
+func (s *userService) Register(ctx context.Context, authToken *token.Payload, req dto.CreateUserRequest, tokenPassReset string) (dto.UserResponse, error) {
 	// check to see that the role is Admin or Director or School_Manager
 	if !CheckRolePresence(authToken.Role, s.roles[Admin].ID) && !CheckRolePresence(authToken.Role, s.roles[Director].ID) && !CheckRolePresence(authToken.Role, s.roles[SchoolManager].ID) && !CheckRolePresence(authToken.Role, s.roles[HeadTeacher].ID) {
 		return dto.UserResponse{}, ErrUnAuthorized
@@ -124,7 +131,11 @@ func (s *userService) Register(ctx context.Context, authToken *token.Payload, re
 		return dto.UserResponse{}, ErrBadRequest
 	}
 
-	hashedPassword, err := HashPassword(req.Password)
+	securePassword, err := password.Generate(12, 5, 3, false, true)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+	hashedPassword, err := HashPassword(securePassword)
 	if err != nil {
 		return dto.UserResponse{}, err
 	}
@@ -192,7 +203,8 @@ func (s *userService) Register(ctx context.Context, authToken *token.Payload, re
 	response.UserRole = userRole.RoleID
 	response.UserSchool = school.ID
 
-	err = s.SendRegisterEmail(user.FirstName+" "+user.LastName, school.Name, roleEntity.Name, user.Password, qrimage, user.Email)
+	link := s.CreatePasswordRecoveryLink(tokenPassReset, user.Email)
+	err = s.SendRegisterEmail(user.FirstName+" "+user.LastName, school.Name, roleEntity.Name, securePassword, qrimage, user.Email, link)
 	if err != nil {
 		return dto.UserResponse{}, ErrSendingEmail
 	}
@@ -345,15 +357,36 @@ func (s *userService) GetTeachers(ctx context.Context, token *token.Payload) (re
 	return
 }
 
-func (s *userService) ChangePassword(ctx context.Context, email string) (err error) {
-	_, err = s.db.GetUserbyEmail(ctx, email)
+func (s *userService) ChangePassword(ctx context.Context, email string, password string) (err error) {
+	user, err := s.db.GetUserbyEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	err = s.ValidatePasswords(password)
 	if err != nil {
 		return err
 	}
 
+	hashedPassword, err := HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
+		Password: hashedPassword,
+		ID:       user.ID,
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
+func (s *userService) CreatePasswordRecoveryLink(token string, email string) (link string) {
+	return s.configSet.ServerAddress + "/users/accountrecovery/" + email + "/" + token
+}
+
+// not a disposable email, and there is a user with such an email
 func (s *userService) VerifyEmail(email string) (err error) {
 	result, err := s.emailVerifier.Verify(email)
 	if err != nil {
@@ -362,12 +395,28 @@ func (s *userService) VerifyEmail(email string) (err error) {
 	if !result.Syntax.Valid || result.Disposable || result.Suggestion != "" || result.Reachable == "no" || !result.HasMxRecords {
 		return ErrInvalidEmail
 	}
+	_, err = s.db.GetUserbyEmail(context.TODO(), email)
+	if err != nil {
+		return ErrInvalidEmail
+	}
 	return nil
 }
 
 func (s *userService) ValidatePasswords(password string) error {
 	err := passwordvalidator.Validate(password, minEntropy)
-	return err
+	if err != nil {
+		return ErrEasyPassword
+	}
+	var flag = 0
+	for _, char := range password {
+		if !unicode.IsLetter(char) {
+			flag++
+		}
+	}
+	if flag < 2 {
+		return ErrEasyPassword
+	}
+	return nil
 }
 
 func NewUserService(database db.Store, mapRoles map[string]db.Role, configSet config.Config) UserService {
@@ -377,7 +426,8 @@ func NewUserService(database db.Store, mapRoles map[string]db.Role, configSet co
 		RolesService:  NewRolesService(database, mapRoles),
 		ClassService:  NewClassService(database, mapRoles),
 		EmailService:  NewEmailService(configSet.EmailServerLogin, configSet.EmailServerPassword),
-		emailVerifier: ev}
+		emailVerifier: ev,
+		configSet:     configSet}
 }
 
 func setupEmailVerifier() *emailverifier.Verifier {

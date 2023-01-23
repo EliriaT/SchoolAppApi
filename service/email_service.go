@@ -16,8 +16,8 @@ const (
 var ErrSendingEmail = errors.New("Error Sending Email")
 
 type EmailService interface {
-	SendRegisterEmail(name, school, role, userPassword, QRcode, receiver string) error
-	SendChangePasswordEmail() error
+	SendRegisterEmail(name, school, role, userPassword, QRcode, receiver, link string) error
+	SendChangePasswordEmail(link string, receiver string) error
 }
 
 type emailService struct {
@@ -35,7 +35,7 @@ func NewEmailService(login, pass string) EmailService {
 }
 
 // subject string, templatePath string, to []string
-func (e emailService) SendRegisterEmail(name, school, role, userPassword, QRcode, receiver string) error {
+func (e emailService) SendRegisterEmail(name, school, role, userPassword, QRcode, receiver, link string) error {
 
 	var body bytes.Buffer
 	t, err := template.ParseFiles("service/email-template/email-template.html")
@@ -50,6 +50,7 @@ func (e emailService) SendRegisterEmail(name, school, role, userPassword, QRcode
 		Email    string
 		Password string
 		QRCode   string
+		Link     string
 	}{
 		Name:     name,
 		School:   school,
@@ -57,6 +58,7 @@ func (e emailService) SendRegisterEmail(name, school, role, userPassword, QRcode
 		Email:    receiver,
 		Password: userPassword,
 		QRCode:   QRcode,
+		Link:     link,
 	})
 	if err != nil {
 		return err
@@ -72,6 +74,28 @@ func (e emailService) SendRegisterEmail(name, school, role, userPassword, QRcode
 	return nil
 
 }
-func (e emailService) SendChangePasswordEmail() error {
+func (e emailService) SendChangePasswordEmail(link string, receiver string) error {
+	var body bytes.Buffer
+	t, err := template.ParseFiles("service/email-template/recover-password-template.html")
+	if err != nil {
+		return err
+	}
+
+	err = t.Execute(&body, struct {
+		Link string
+	}{
+		Link: link,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = smtp.SendMail(SMTP_HOST+":"+SMTP_PORT, e.auth, e.from, []string{receiver}, body.Bytes())
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
 	return nil
 }

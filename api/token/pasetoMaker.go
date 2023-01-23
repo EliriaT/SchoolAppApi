@@ -47,6 +47,32 @@ func (p *PasetoMaker) AuthenticateToken(payload Payload) (string, error) {
 	return p.paseto.Encrypt(p.symmetricKey, payload, nil)
 }
 
+func (p *PasetoMaker) CreatePasswordRecoveryToken(email string, duration time.Duration) (string, error) {
+	passwordRecoveryPayload, err := NewPasswordRecoveryPayload(email, duration)
+	if err != nil {
+
+		return "", err
+	}
+
+	return p.paseto.Encrypt(p.symmetricKey, passwordRecoveryPayload, nil)
+}
+
+// VerifyToken checks if the tocken is valid, or not and returns the decrypted payload
+func (p *PasetoMaker) VerifyPasswordToken(token string) (PasswordRecoveryPayload, error) {
+	payload := &PasswordRecoveryPayload{}
+
+	err := p.paseto.Decrypt(token, p.symmetricKey, payload, nil)
+	if err != nil {
+		return PasswordRecoveryPayload{}, ErrInvalidToken
+	}
+
+	err = payload.Valid()
+	if err != nil {
+		return PasswordRecoveryPayload{}, err
+	}
+	return *payload, nil
+}
+
 // NewPasetoMaker creates a new PasetoMaker
 func NewPasetoMaker(symmetricKey string) (TokenMaker, error) {
 	if len(symmetricKey) != chacha20poly1305.KeySize {
