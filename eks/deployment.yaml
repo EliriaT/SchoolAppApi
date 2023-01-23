@@ -17,5 +17,6 @@ spec:
       containers:
         - name: school-api
           image: 548431307202.dkr.ecr.eu-west-3.amazonaws.com/school:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
