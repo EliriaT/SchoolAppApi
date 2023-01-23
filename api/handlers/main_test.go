@@ -19,7 +19,7 @@ func newTestServer(t *testing.T, store db.Store) *Server {
 		AccessTokenDuration: time.Hour,
 	}
 
-	serverService, err := service.NewServerService(store)
+	serverService, err := service.NewServerService(store, configOb)
 	if err != nil {
 		log.Fatal("cannot create create service", err)
 	}

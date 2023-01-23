@@ -5,14 +5,23 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
+	emailverifier "github.com/AfterShip/email-verifier"
 	"github.com/EliriaT/SchoolAppApi/api/token"
+	"github.com/EliriaT/SchoolAppApi/config"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
+	"github.com/sethvargo/go-password/password"
+	passwordvalidator "github.com/wagslane/go-password-validator"
+	"io"
+	"unicode"
+
 	"github.com/lib/pq"
 	"github.com/pquerna/otp/totp"
 	"image/png"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -20,27 +29,39 @@ var (
 	//ErrWrongOTPCode = errors.New("wrong OTP provided")
 	ErrUnAuthorized = errors.New("Not authorized")
 	ErrBadRequest   = errors.New("Bad request")
-	//ErrServer       = errors.New("Internal Server Error")
+	ErrInvalidEmail = errors.New("Invalid email provided")
+	ErrEasyPassword = errors.New("The password is not enough complex")
 )
 
+const minEntropy = 60
+
 type UserService interface {
-	Register(ctx context.Context, token *token.Payload, req dto.CreateUserRequest) (dto.UserResponse, error)
+	Register(ctx context.Context, token *token.Payload, req dto.CreateUserRequest, tokenPassReset string) (dto.UserResponse, error)
 	Login(ctx context.Context, req dto.LoginUserRequest) (response dto.LoginUserResponse, roles []int64, schoolID int64, ClassID int64, err error)
 	CreateAdmin() error
 	CheckTOTP(ctx context.Context, token *token.Payload, req dto.CheckTOTPRequest) (response dto.LoginUserResponse, err error)
 	GetTeachers(ctx context.Context, token *token.Payload) (response []dto.TeacherResponse, err error)
+	// this will change the password
+	ChangePassword(ctx context.Context, email string, password string) (err error)
+
+	VerifyEmail(email string) (err error)
+	ValidatePasswords(password string) error
+	CreatePasswordRecoveryLink(token string, email string) (link string)
 }
 
 type userService struct {
 	RolesService
 	ClassService
-	db    db.Store
-	roles map[string]db.Role
+	EmailService
+	db            db.Store
+	roles         map[string]db.Role
+	emailVerifier *emailverifier.Verifier
+	configSet     config.Config
 }
 
 // TODO uuid Roles should be hidden by uuid
 
-func (s *userService) Register(ctx context.Context, authToken *token.Payload, req dto.CreateUserRequest) (dto.UserResponse, error) {
+func (s *userService) Register(ctx context.Context, authToken *token.Payload, req dto.CreateUserRequest, tokenPassReset string) (dto.UserResponse, error) {
 	// check to see that the role is Admin or Director or School_Manager
 	if !CheckRolePresence(authToken.Role, s.roles[Admin].ID) && !CheckRolePresence(authToken.Role, s.roles[Director].ID) && !CheckRolePresence(authToken.Role, s.roles[SchoolManager].ID) && !CheckRolePresence(authToken.Role, s.roles[HeadTeacher].ID) {
 		return dto.UserResponse{}, ErrUnAuthorized
@@ -74,7 +95,7 @@ func (s *userService) Register(ctx context.Context, authToken *token.Payload, re
 	}
 
 	// Check the assigned role
-	_, err = s.db.GetRolebyId(ctx, req.RoleID)
+	roleEntity, err := s.db.GetRolebyId(ctx, req.RoleID)
 	if err != nil {
 		return dto.UserResponse{}, err
 	}
@@ -97,12 +118,24 @@ func (s *userService) Register(ctx context.Context, authToken *token.Payload, re
 		return dto.UserResponse{}, ErrUnAuthorized
 	}
 
+	//Head Teacher -> student in his class
+	if (CheckRolePresence(authToken.Role, s.roles[HeadTeacher].ID)) && (req.RoleID == s.roles[Student].ID) {
+		if authToken.ClassID != req.ClassID {
+			return dto.UserResponse{}, ErrUnAuthorized
+		}
+
+	}
+
 	// Check that the class is provided only if request role is Student
 	if ((req.RoleID == s.roles[Student].ID) && req.ClassID == 0) || ((req.RoleID != s.roles[Student].ID) && req.ClassID != 0) {
 		return dto.UserResponse{}, ErrBadRequest
 	}
 
-	hashedPassword, err := HashPassword(req.Password)
+	securePassword, err := password.Generate(12, 5, 3, false, true)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+	hashedPassword, err := HashPassword(securePassword)
 	if err != nil {
 		return dto.UserResponse{}, err
 	}
@@ -169,6 +202,12 @@ func (s *userService) Register(ctx context.Context, authToken *token.Payload, re
 	response.UserClass = userRoleClass.ClassID
 	response.UserRole = userRole.RoleID
 	response.UserSchool = school.ID
+
+	link := s.CreatePasswordRecoveryLink(tokenPassReset, user.Email)
+	err = s.SendRegisterEmail(user.FirstName+" "+user.LastName, school.Name, roleEntity.Name, securePassword, qrimage, user.Email, link)
+	if err != nil {
+		return dto.UserResponse{}, ErrSendingEmail
+	}
 	return response, err
 }
 
@@ -318,9 +357,98 @@ func (s *userService) GetTeachers(ctx context.Context, token *token.Payload) (re
 	return
 }
 
-func NewUserService(database db.Store, mapRoles map[string]db.Role) UserService {
+func (s *userService) ChangePassword(ctx context.Context, email string, password string) (err error) {
+	user, err := s.db.GetUserbyEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	err = s.ValidatePasswords(password)
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
+		Password: hashedPassword,
+		ID:       user.ID,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *userService) CreatePasswordRecoveryLink(token string, email string) (link string) {
+	return s.configSet.ServerAddress + "/users/accountrecovery/" + email + "/" + token
+}
+
+// not a disposable email, and there is a user with such an email
+func (s *userService) VerifyEmail(email string) (err error) {
+	result, err := s.emailVerifier.Verify(email)
+	if err != nil {
+		return err
+	}
+	if !result.Syntax.Valid || result.Disposable || result.Suggestion != "" || result.Reachable == "no" || !result.HasMxRecords {
+		return ErrInvalidEmail
+	}
+	_, err = s.db.GetUserbyEmail(context.TODO(), email)
+	if err != nil {
+		return ErrInvalidEmail
+	}
+	return nil
+}
+
+func (s *userService) ValidatePasswords(password string) error {
+	err := passwordvalidator.Validate(password, minEntropy)
+	if err != nil {
+		return ErrEasyPassword
+	}
+	var flag = 0
+	for _, char := range password {
+		if !unicode.IsLetter(char) {
+			flag++
+		}
+	}
+	if flag < 2 {
+		return ErrEasyPassword
+	}
+	return nil
+}
+
+func NewUserService(database db.Store, mapRoles map[string]db.Role, configSet config.Config) UserService {
+	ev := setupEmailVerifier()
 
 	return &userService{db: database, roles: mapRoles,
-		RolesService: NewRolesService(database, mapRoles),
-		ClassService: NewClassService(database, mapRoles)}
+		RolesService:  NewRolesService(database, mapRoles),
+		ClassService:  NewClassService(database, mapRoles),
+		EmailService:  NewEmailService(configSet.EmailServerLogin, configSet.EmailServerPassword),
+		emailVerifier: ev,
+		configSet:     configSet}
+}
+
+func setupEmailVerifier() *emailverifier.Verifier {
+	ev := emailverifier.NewVerifier()
+	ev.EnableDomainSuggest()
+	resp, err := http.Get("https://disposable.github.io/disposable-email-domains/domains.json")
+	if err != nil {
+		log.Println("Error Downloading disposable email domains list")
+	}
+	defer resp.Body.Close()
+	var disposableEmailDomains = make([]string, 0, 5000)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = json.Unmarshal(respBody, &disposableEmailDomains)
+	if err != nil {
+		log.Println(err)
+	}
+
+	ev.AddDisposableDomains(disposableEmailDomains)
+	return ev
 }

@@ -60,3 +60,35 @@ func NewPayload(email string, role []int64, SchoolID int64, ClassID int64, UserI
 	}
 	return payload, nil
 }
+
+// PasswordRecoveryPayload contains the payload data of the  PasswordRecovery token
+type PasswordRecoveryPayload struct {
+	ID        uuid.UUID `json:"id"`
+	Email     string    `json:"email"`
+	IssuedAt  time.Time `json:"issued_at"`
+	ExpiredAt time.Time `json:"expired_at"`
+}
+
+// Valid checks if the token payload is valid or not
+// TODO Validate all cases and with IP
+func (payload *PasswordRecoveryPayload) Valid() error {
+	if time.Now().After(payload.ExpiredAt) {
+		return ErrExpiredToken
+	}
+	return nil
+}
+
+func NewPasswordRecoveryPayload(email string, duration time.Duration) (PasswordRecoveryPayload, error) {
+	tokenId, err := uuid.NewRandom()
+	if err != nil {
+		return PasswordRecoveryPayload{}, err
+	}
+
+	payload := PasswordRecoveryPayload{
+		ID:        tokenId,
+		Email:     email,
+		IssuedAt:  time.Now(),
+		ExpiredAt: time.Now().Add(duration),
+	}
+	return payload, nil
+}

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/EliriaT/SchoolAppApi/config"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 )
 
@@ -14,6 +15,7 @@ type Service interface {
 	CourseService
 	LessonService
 	MarkService
+	EmailService
 }
 
 type ServerService struct {
@@ -25,9 +27,10 @@ type ServerService struct {
 	CourseService
 	LessonService
 	MarkService
+	EmailService
 }
 
-func NewServerService(database db.Store) (Service, error) {
+func NewServerService(database db.Store, configSet config.Config) (Service, error) {
 
 	userRoles, err := database.GetRoles(context.TODO())
 	if err != nil {
@@ -38,12 +41,13 @@ func NewServerService(database db.Store) (Service, error) {
 		mapRoles[r.Name] = r
 	}
 
-	return &ServerService{UserService: NewUserService(database, mapRoles),
+	return &ServerService{UserService: NewUserService(database, mapRoles, configSet),
 		SchoolService:   NewSchoolService(database, mapRoles),
 		RolesService:    NewRolesService(database, mapRoles),
 		ClassService:    NewClassService(database, mapRoles),
 		SemesterService: NewSemesterService(database, mapRoles),
 		CourseService:   NewCourseService(database, mapRoles),
 		LessonService:   NewLessonService(database, mapRoles),
-		MarkService:     NewMarkService(database, mapRoles)}, err
+		MarkService:     NewMarkService(database, mapRoles),
+		EmailService:    NewEmailService(configSet.EmailServerLogin, configSet.EmailServerPassword)}, err
 }

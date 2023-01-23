@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: school-api-deployment
+  labels:
+    app: school-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: school-api
+  template:
+    metadata:
+      labels:
+        app: school-api
+    spec:
+      containers:
+        - name: school-api
+          image: 548431307202.dkr.ecr.eu-west-3.amazonaws.com/school:0d85680bb721f32ee11209ee8406e95ebf5f3324
+          ports:
+            - containerPort: 8080

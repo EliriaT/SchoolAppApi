@@ -34,4 +34,8 @@ server:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/EliriaT/SchoolAppApi/db/sqlc Store
 
+deployeks:
+	kubectl apply -f eks/deployment.yaml
+
+
 .PHONY: postgres createdb dropdb migrateup migratedown sqlc test server mock migrateversion

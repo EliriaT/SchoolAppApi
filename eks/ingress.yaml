@@ -1,0 +1,16 @@
+#apiVersion: networking.k8s.io/v1
+#kind: Ingress
+#metadata:
+#  name: school-ingress
+#spec:
+#  rules:
+#    - host: "api.scoala-mea.link"
+#      http:
+#        paths:
+#          - pathType: Prefix
+#            path: "/"
+#            backend:
+#              service:
+#                name: school-service
+#                port:
+#                  number: 80

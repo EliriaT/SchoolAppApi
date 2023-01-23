@@ -36,6 +36,8 @@ func (server *Server) setupRouter() {
 
 	router.POST("/users", authMiddleware(server.tokenMaker), server.createUser)
 	router.POST("/users/login", server.loginUser)
+	router.POST("/users/accountrecovery/:email/:token", server.recoverAndChangePassword)
+	router.POST("/users/accountrecovery", server.accountRecoveryRequest)
 	router.POST("/users/twofactor", authMiddleware(server.tokenMaker), server.twoFactorLoginUser)
 
 	schoolRoutes := router.Group("/schools").Use(authMiddleware(server.tokenMaker))

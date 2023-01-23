@@ -7,13 +7,14 @@ import (
 )
 
 type Config struct {
-	DBdriver            string        `mapstructure:"DB_DRIVER"`
-	DBSource            string        `mapstructure:"DB_SOURCE"`
-	ServerAddress       string        `mapstructure:"SERVER_ADDRESS"`
-	EmailServerLogin    string        `mapstructure:"EMAIL_SERVER_LOGIN"`
-	EmailServerPassword string        `mapstructure:"EMAIL_SERVER_PASSWORD"`
-	TokenSymmetricKey   string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
-	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	DBdriver                   string        `mapstructure:"DB_DRIVER"`
+	DBSource                   string        `mapstructure:"DB_SOURCE"`
+	ServerAddress              string        `mapstructure:"SERVER_ADDRESS"`
+	EmailServerLogin           string        `mapstructure:"EMAIL_SERVER_LOGIN"`
+	EmailServerPassword        string        `mapstructure:"EMAIL_SERVER_PASSWORD"`
+	TokenSymmetricKey          string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
+	AccessTokenDuration        time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	EmailRecoveryTokenDuration time.Duration `mapstructure:"ACCOUNT_RECOVERY_TOKEN_DURATION"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

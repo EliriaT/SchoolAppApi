@@ -65,6 +65,16 @@ func (j *JWTMaker) AuthenticateToken(payload Payload) (string, error) {
 
 }
 
+// Atention, not implemented
+func (p *JWTMaker) CreatePasswordRecoveryToken(email string, duration time.Duration) (string, error) {
+	return "", nil
+}
+
+// Atention, not implemented
+func (p *JWTMaker) VerifyPasswordToken(token string) (PasswordRecoveryPayload, error) {
+	return PasswordRecoveryPayload{}, nil
+}
+
 // NewJWTMaker creates a new JWTMaker that implements the TokenMaker interface
 func NewJWTMaker(secretKey string) (TokenMaker, error) {
 	if len(secretKey) < minSecretKeySize {
