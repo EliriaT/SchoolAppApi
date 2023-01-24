@@ -58,7 +58,7 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, accessPayload, err := server.tokenMaker.CreateToken(
+	_, accessPayload, err := server.tokenMaker.CreateToken(
 		refreshPayload.Email,
 		refreshPayload.Role,
 		refreshPayload.SchoolID,
@@ -71,8 +71,14 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 		return
 	}
 
+	authToken, err := server.tokenMaker.AuthenticateToken(*accessPayload)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	rsp := dto.RenewAccessTokenResponse{
-		AccessToken:          accessToken,
+		AccessToken:          authToken,
 		AccessTokenExpiresAt: accessPayload.ExpiredAt,
 	}
 	ctx.JSON(http.StatusOK, rsp)

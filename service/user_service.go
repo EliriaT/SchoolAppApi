@@ -200,7 +200,7 @@ func (s *userService) Register(ctx context.Context, authToken *token.Payload, re
 	qrimage := base64.StdEncoding.EncodeToString(buf.Bytes())
 	response := dto.NewUserResponse(user)
 	response.Qrcode = qrimage
-	response.TOTPSecret = user.TotpSecret
+	//response.TOTPSecret = user.TotpSecret
 	response.UserClass = userRoleClass.ClassID
 	response.UserRole = userRole.RoleID
 	response.UserSchool = school.ID

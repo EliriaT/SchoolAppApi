@@ -24,9 +24,9 @@ type CreateUserRequest struct {
 }
 
 type UserResponse struct {
-	ID                int64          `json:"id,omitempty"`
-	Email             string         `json:"email,omitempty"`
-	TOTPSecret        string         `json:"authentificator_secret,omitempty"`
+	ID    int64  `json:"id,omitempty"`
+	Email string `json:"email,omitempty"`
+	//TOTPSecret        string         `json:"authentificator_secret,omitempty"`
 	Qrcode            string         `json:"qrcode,omitempty"`
 	LastName          string         `json:"lastName,omitempty"`
 	FirstName         string         `json:"firstName,omitempty"`
