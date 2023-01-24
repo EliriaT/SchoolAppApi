@@ -6,6 +6,7 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=school
+
   api:
     build:
       context: .
@@ -21,6 +22,6 @@ services:
         "/app/wait-for.sh",
         "postgres:5432",
         "--",
-        "/app/start.sh"
+        "/app/start-docker.sh"
       ]
     command: [ "/app/main" ]

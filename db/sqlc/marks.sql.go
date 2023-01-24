@@ -9,7 +9,6 @@ import (
 	"context"
 	"database/sql"
 	"time"
-
 )
 
 const createMark = `-- name: CreateMark :one
@@ -84,7 +83,6 @@ func (q *Queries) GetMarkByID(ctx context.Context, id int64) (Mark, error) {
 	)
 	return i, err
 }
-
 
 const updateCourseAbsencebyId = `-- name: UpdateCourseAbsencebyId :one
 UPDATE  "Marks"

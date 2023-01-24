@@ -6,10 +6,13 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
 	AddUserToClass(ctx context.Context, arg AddUserToClassParams) (UserRoleClass, error)
+	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateClass(ctx context.Context, arg CreateClassParams) (Class, error)
 	CreateCourse(ctx context.Context, arg CreateCourseParams) (Course, error)
 	CreateLesson(ctx context.Context, arg CreateLessonParams) (Lesson, error)
@@ -22,6 +25,7 @@ type Querier interface {
 	DeleteMark(ctx context.Context, id int64) error
 	DeleteSchool(ctx context.Context, id int64) error
 	DeleteUser(ctx context.Context, id int64) error
+	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	GetClassById(ctx context.Context, id int64) (Class, error)
 	GetClassSchedule(ctx context.Context, classID int64) ([]GetClassScheduleRow, error)
 	GetClassWithStudents(ctx context.Context, id int64) ([]GetClassWithStudentsRow, error)
@@ -60,6 +64,7 @@ type Querier interface {
 	UpdateUserHeadTeacherRole(ctx context.Context, arg UpdateUserHeadTeacherRoleParams) (UserRole, error)
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error)
 	UpdateUserRoleClass(ctx context.Context, arg UpdateUserRoleClassParams) (UserRoleClass, error)
+
 }
 
 var _ Querier = (*Queries)(nil)

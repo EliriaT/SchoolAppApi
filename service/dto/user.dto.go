@@ -3,6 +3,7 @@ package dto
 import (
 	"database/sql"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
+	"github.com/google/uuid"
 	"time"
 )
 
@@ -62,8 +63,12 @@ type LoginUserRequest struct {
 }
 
 type LoginUserResponse struct {
-	AccessToken string `json:"access_token"`
-	User        UserResponse
+	SessionID             uuid.UUID `json:"session_id"` //id of refresh token
+	AccessToken           string    `json:"access_token"`
+	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`
+	RefreshToken          string    `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time `json:"refresh_token_expires_at"`
+	User                  UserResponse
 }
 
 type CheckTOTPRequest struct {
