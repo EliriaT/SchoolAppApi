@@ -22,6 +22,6 @@ services:
         "/app/wait-for.sh",
         "postgres:5432",
         "--",
-        "/app/start-docker.sh"
+        "/app/start.sh"
       ]
     command: [ "/app/main" ]
