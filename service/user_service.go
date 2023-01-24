@@ -41,6 +41,7 @@ type UserService interface {
 	CreateAdmin() error
 	CheckTOTP(ctx context.Context, token *token.Payload, req dto.CheckTOTPRequest) (response dto.LoginUserResponse, err error)
 	GetTeachers(ctx context.Context, token *token.Payload) (response []dto.TeacherResponse, err error)
+	GetUserByID(ctx context.Context, authPayload *token.Payload, id int64) (dto.UserResponse, error)
 	// this will change the password
 	ChangePassword(ctx context.Context, email string, password string) (err error)
 
@@ -247,6 +248,20 @@ func (s *userService) Login(ctx context.Context, req dto.LoginUserRequest) (resp
 
 	response = dto.LoginUserResponse{User: dto.NewUserResponse(user)}
 	return
+
+}
+
+func (s *userService) GetUserByID(ctx context.Context, authPayload *token.Payload, id int64) (dto.UserResponse, error) {
+
+	user, err := s.db.GetUserbyId(ctx, id)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	if authPayload.UserID != user.ID && !CheckRolePresence(authPayload.Role, s.roles[Director].ID) && !CheckRolePresence(authPayload.Role, s.roles[SchoolManager].ID) {
+		return dto.UserResponse{}, ErrUnAuthorized
+	}
+	return dto.NewUserResponse(user), err
 
 }
 

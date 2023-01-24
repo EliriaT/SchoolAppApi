@@ -24,9 +24,9 @@ type CreateUserRequest struct {
 }
 
 type UserResponse struct {
-	ID    int64  `json:"id,omitempty"`
-	Email string `json:"email,omitempty"`
-	//TOTPSecret        string         `json:"authentificator_secret,omitempty"`
+	ID                int64          `json:"id,omitempty"`
+	Email             string         `json:"email,omitempty"`
+	TOTPSecret        string         `json:"authentificator_secret,omitempty"`
 	Qrcode            string         `json:"qrcode,omitempty"`
 	LastName          string         `json:"lastName,omitempty"`
 	FirstName         string         `json:"firstName,omitempty"`
@@ -99,4 +99,8 @@ type TeacherResponse struct {
 	UserName   string `json:"user_name"`
 	UserRoleID int64  `json:"user_role_id"`
 	RoleName   string `json:"role_name"`
+}
+
+type GetUserByIdRequest struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
 }

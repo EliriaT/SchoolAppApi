@@ -236,3 +236,30 @@ func (server *Server) accountRecoveryRequest(ctx *gin.Context) {
 	ctx.String(http.StatusOK, "Please check your email, for a reset password link")
 
 }
+
+func (server *Server) getUserByID(ctx *gin.Context) {
+	var req dto.GetUserByIdRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	response, err := server.service.GetUserByID(ctx, authPayload, req.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		} else if err == service.ErrUnAuthorized {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+
+	}
+
+	ctx.JSON(http.StatusCreated, response)
+}

@@ -37,26 +37,32 @@ func (server *Server) setupRouter() {
 	router := gin.Default()
 
 	config := cors.DefaultConfig()
-	config.AllowAllOrigins = true
+
+	if server.config.CorsOrigin == "*" {
+		config.AllowAllOrigins = true
+	} else {
+		config.AllowOrigins = []string{server.config.CorsOrigin}
+	}
 	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
 	config.ExposeHeaders = []string{"Content-Length"}
 
 	router.Use(cors.New(config))
 
-	router.POST("/users", authMiddleware(server.tokenMaker), server.createUser)
+	router.POST("/users", authMiddleware(server.tokenMaker, server.config), server.createUser)
+	router.GET("/users/:id", authMiddleware(server.tokenMaker, server.config), server.getUserByID)
 	router.POST("/users/login", server.loginUser)
 	router.POST("/users/accountrecovery/:email/:token", server.recoverAndChangePassword)
 	router.POST("/users/accountrecovery", server.accountRecoveryRequest)
-	router.POST("/users/twofactor", authMiddleware(server.tokenMaker), server.twoFactorLoginUser)
+	router.POST("/users/twofactor", authMiddleware(server.tokenMaker, server.config), server.twoFactorLoginUser)
 	router.POST("/token/renew_access", server.renewAccessToken)
 
-	schoolRoutes := router.Group("/schools").Use(authMiddleware(server.tokenMaker))
+	schoolRoutes := router.Group("/schools").Use(authMiddleware(server.tokenMaker, server.config))
 
 	schoolRoutes.POST("", server.createSchool)
 	schoolRoutes.GET("/:id", server.getSchoolbyId)
 	schoolRoutes.GET("", server.listSchools)
 
-	classRoutes := router.Group("/class").Use(authMiddleware(server.tokenMaker))
+	classRoutes := router.Group("/class").Use(authMiddleware(server.tokenMaker, server.config))
 
 	classRoutes.POST("", server.createClass)
 	classRoutes.GET("/:id", server.getClassbyId)
@@ -64,13 +70,13 @@ func (server *Server) setupRouter() {
 	classRoutes.GET("", server.getClass)
 	classRoutes.PUT("", server.changeHeadTeacherClass)
 
-	semesterRoutes := router.Group("/semester").Use(authMiddleware(server.tokenMaker))
+	semesterRoutes := router.Group("/semester").Use(authMiddleware(server.tokenMaker, server.config))
 
 	semesterRoutes.POST("", server.createSemester)
 	semesterRoutes.GET("", server.getSemesters)
 	semesterRoutes.GET("/current", server.getCurrentSemester)
 
-	courseRoutes := router.Group("/course").Use(authMiddleware(server.tokenMaker))
+	courseRoutes := router.Group("/course").Use(authMiddleware(server.tokenMaker, server.config))
 
 	//works
 	courseRoutes.POST("", server.createCourse)
@@ -80,7 +86,7 @@ func (server *Server) setupRouter() {
 	//works
 	courseRoutes.PUT("", server.changeCourse)
 
-	lessonRoutes := router.Group("/lesson").Use(authMiddleware(server.tokenMaker))
+	lessonRoutes := router.Group("/lesson").Use(authMiddleware(server.tokenMaker, server.config))
 	//works
 	lessonRoutes.POST("", server.createLesson)
 	//works ideal
@@ -90,7 +96,7 @@ func (server *Server) setupRouter() {
 	//TODO CORRECT DATES UPDATE
 	lessonRoutes.PUT("", server.changeLesson)
 
-	markRoutes := router.Group("/mark").Use(authMiddleware(server.tokenMaker))
+	markRoutes := router.Group("/mark").Use(authMiddleware(server.tokenMaker, server.config))
 	//works
 	markRoutes.POST("", server.createMark)
 	//works
@@ -99,9 +105,9 @@ func (server *Server) setupRouter() {
 	markRoutes.DELETE(":id", server.deleteMark)
 
 	//works
-	router.GET("/roles", authMiddleware(server.tokenMaker), server.getRoles)
+	router.GET("/roles", authMiddleware(server.tokenMaker, server.config), server.getRoles)
 	//works
-	router.GET("/teachers", authMiddleware(server.tokenMaker), server.getTeacher)
+	router.GET("/teachers", authMiddleware(server.tokenMaker, server.config), server.getTeacher)
 
 	server.router = router
 }

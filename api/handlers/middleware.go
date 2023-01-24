@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"fmt"
+	"github.com/EliriaT/SchoolAppApi/config"
 	"net/http"
 	"strings"
 
@@ -17,7 +18,7 @@ const (
 )
 
 // Only authentificates the requests
-func authMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
+func authMiddleware(tokenMaker token.TokenMaker, configSet config.Config) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorizationHeader := ctx.GetHeader(authorizationHeaderKey)
 		if len(authorizationHeader) == 0 {
@@ -46,10 +47,12 @@ func authMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 			return
 		}
 
-		if payload.Authenticated == false && ctx.FullPath() != "/users/twofactor" {
-			err := fmt.Errorf("not logged in using 2 factor auth")
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
-			return
+		if configSet.TwoFactorAuth == "yes" {
+			if payload.Authenticated == false && ctx.FullPath() != "/users/twofactor" {
+				err := fmt.Errorf("not logged in using 2 factor auth")
+				ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
+				return
+			}
 		}
 
 		// stored in the gin context with the authorizationPayloadKey
