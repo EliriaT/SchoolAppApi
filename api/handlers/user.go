@@ -3,8 +3,10 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/service"
@@ -105,8 +107,21 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	response.AccessTokenExpiresAt = accessPayload.ExpiredAt
 	response.RefreshToken = refreshToken
 	response.RefreshTokenExpiresAt = refreshPayload.ExpiredAt
+	viorelResponse := struct {
+		SessionID             uuid.UUID
+		AccessToken           string
+		AccessTokenExpiresAt  time.Time
+		RefreshToken          string
+		RefreshTokenExpiresAt time.Time
+	}{
+		SessionID:             session.ID,
+		AccessToken:           accessToken,
+		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
+	}
 
-	ctx.JSON(http.StatusOK, accessToken)
+	ctx.JSON(http.StatusOK, viorelResponse)
 }
 
 func (server *Server) twoFactorLoginUser(ctx *gin.Context) {
@@ -130,8 +145,8 @@ func (server *Server) twoFactorLoginUser(ctx *gin.Context) {
 		return
 	}
 
-	response.AccessToken = authToken
-	ctx.JSON(http.StatusOK, response)
+	//response.AccessToken = authToken
+	ctx.JSON(http.StatusOK, authToken)
 }
 
 func (server *Server) getRoles(ctx *gin.Context) {

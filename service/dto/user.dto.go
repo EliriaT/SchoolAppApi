@@ -28,8 +28,8 @@ type UserResponse struct {
 	Email             string         `json:"email,omitempty"`
 	TOTPSecret        string         `json:"authentificator_secret,omitempty"`
 	Qrcode            string         `json:"qrcode,omitempty"`
-	LastName          string         `json:"lastName"`
-	FirstName         string         `json:"firstName"`
+	LastName          string         `json:"lastName,omitempty"`
+	FirstName         string         `json:"firstName,omitempty"`
 	Gender            string         `json:"gender,omitempty"`
 	PhoneNumber       sql.NullString `json:"phoneNumber,omitempty"`
 	Domicile          sql.NullString `json:"domicile,omitempty"`
