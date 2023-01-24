@@ -17,6 +17,7 @@ func newTestServer(t *testing.T, store db.Store) *Server {
 	configOb := config.Config{
 		TokenSymmetricKey:   seed.RandomString(32),
 		AccessTokenDuration: time.Hour,
+		CorsOrigin:          "*",
 	}
 
 	serverService, err := service.NewServerService(store, configOb)
