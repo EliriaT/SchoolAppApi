@@ -2,6 +2,7 @@ package token
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/vk-rv/pvx"
@@ -15,13 +16,15 @@ type PasetoMaker struct {
 }
 
 // CreateToken creates a new token for a specific user with unique email,
-func (p *PasetoMaker) CreateToken(email string, role []int64, SchoolID int64, ClassID int64, UserID int64, duration time.Duration) (string, error) {
+func (p *PasetoMaker) CreateToken(email string, role []int64, SchoolID int64, ClassID int64, UserID int64, duration time.Duration) (string, *Payload, error) {
 	payload, err := NewPayload(email, role, SchoolID, ClassID, UserID, duration)
 	if err != nil {
-		return "", err
+		return "", payload, err
 	}
 
-	return p.paseto.Encrypt(p.symmetricKey, payload, pvx.WithFooter(""))
+	tokenStr, err := p.paseto.Encrypt(p.symmetricKey, payload, pvx.WithFooter(""))
+	return tokenStr, payload, err
+
 }
 
 // VerifyToken checks if the tocken is valid, or not and returns the decrypted payload
@@ -33,6 +36,7 @@ func (p *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 		return nil, err
 	}
 
+	log.Println(payload)
 	err = payload.Valid()
 	if err != nil {
 		return nil, err

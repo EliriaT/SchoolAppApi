@@ -3,8 +3,10 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"github.com/google/uuid"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/service"
@@ -83,14 +85,43 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := server.tokenMaker.CreateToken(response.User.Email, roles, schoolID, classID, response.User.ID, server.config.AccessTokenDuration)
+	accessToken, accessPayload, err := server.tokenMaker.CreateToken(response.User.Email, roles, schoolID, classID, response.User.ID, server.config.AccessTokenDuration)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	response.AccessToken = accessToken
 
-	ctx.JSON(http.StatusOK, accessToken)
+	refreshToken, refreshPayload, err := server.tokenMaker.CreateToken(response.User.Email, roles, schoolID, classID, response.User.ID, server.config.RefreshTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	session, err := server.service.CreateSession(ctx, refreshToken, refreshPayload, ctx.Request.UserAgent(), ctx.ClientIP())
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	response.SessionID = session.ID
+	response.AccessToken = accessToken
+	response.AccessTokenExpiresAt = accessPayload.ExpiredAt
+	response.RefreshToken = refreshToken
+	response.RefreshTokenExpiresAt = refreshPayload.ExpiredAt
+	viorelResponse := struct {
+		SessionID             uuid.UUID
+		AccessToken           string
+		AccessTokenExpiresAt  time.Time
+		RefreshToken          string
+		RefreshTokenExpiresAt time.Time
+	}{
+		SessionID:             session.ID,
+		AccessToken:           accessToken,
+		AccessTokenExpiresAt:  accessPayload.ExpiredAt,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiresAt: refreshPayload.ExpiredAt,
+	}
+
+	ctx.JSON(http.StatusOK, viorelResponse)
 }
 
 func (server *Server) twoFactorLoginUser(ctx *gin.Context) {
@@ -115,7 +146,7 @@ func (server *Server) twoFactorLoginUser(ctx *gin.Context) {
 	}
 
 	response.AccessToken = authToken
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, authToken)
 }
 
 func (server *Server) getRoles(ctx *gin.Context) {

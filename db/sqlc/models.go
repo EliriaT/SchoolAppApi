@@ -7,6 +7,8 @@ package db
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Class struct {
@@ -83,6 +85,17 @@ type Semester struct {
 	UpdatedBy sql.NullInt64 `json:"updatedBy"`
 	CreatedAt sql.NullTime  `json:"createdAt"`
 	UpdatedAt sql.NullTime  `json:"updatedAt"`
+}
+
+type Session struct {
+	ID           uuid.UUID `json:"id"`
+	Email        string    `json:"email"`
+	RefreshToken string    `json:"refreshToken"`
+	UserAgent    string    `json:"userAgent"`
+	ClientIp     string    `json:"clientIp"`
+	IsBlocked    bool      `json:"isBlocked"`
+	ExpiresAt    time.Time `json:"expiresAt"`
+	CreatedAt    time.Time `json:"createdAt"`
 }
 
 type User struct {

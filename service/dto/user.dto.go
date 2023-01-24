@@ -2,9 +2,9 @@ package dto
 
 import (
 	"database/sql"
-	"time"
-
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
+	"github.com/google/uuid"
+	"time"
 )
 
 // When the User is created, if it is admin, it will indicate the school of the director/manager. Otherwise, the school is taken from the token.
@@ -28,8 +28,8 @@ type UserResponse struct {
 	Email             string         `json:"email,omitempty"`
 	TOTPSecret        string         `json:"authentificator_secret,omitempty"`
 	Qrcode            string         `json:"qrcode,omitempty"`
-	LastName          string         `json:"lastName"`
-	FirstName         string         `json:"firstName"`
+	LastName          string         `json:"lastName,omitempty"`
+	FirstName         string         `json:"firstName,omitempty"`
 	Gender            string         `json:"gender,omitempty"`
 	PhoneNumber       sql.NullString `json:"phoneNumber,omitempty"`
 	Domicile          sql.NullString `json:"domicile,omitempty"`
@@ -63,8 +63,12 @@ type LoginUserRequest struct {
 }
 
 type LoginUserResponse struct {
-	AccessToken string `json:"access_token"`
-	User        UserResponse
+	SessionID             uuid.UUID `json:"session_id"` //id of refresh token
+	AccessToken           string    `json:"access_token"`
+	AccessTokenExpiresAt  time.Time `json:"access_token_expires_at"`
+	RefreshToken          string    `json:"refresh_token"`
+	RefreshTokenExpiresAt time.Time `json:"refresh_token_expires_at"`
+	User                  UserResponse
 }
 
 type CheckTOTPRequest struct {

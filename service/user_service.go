@@ -47,6 +47,8 @@ type UserService interface {
 	VerifyEmail(email string) (err error)
 	ValidatePasswords(password string) error
 	CreatePasswordRecoveryLink(token string, email string) (link string)
+
+	CreateSession(ctx context.Context, refreshToken string, refreshPayload *token.Payload, ipAddress string, userAgent string) (dto.SessionResponse, error)
 }
 
 type userService struct {
@@ -417,6 +419,22 @@ func (s *userService) ValidatePasswords(password string) error {
 		return ErrEasyPassword
 	}
 	return nil
+}
+
+func (s *userService) CreateSession(ctx context.Context, refreshToken string, refreshPayload *token.Payload, ipAddress string, userAgent string) (dto.SessionResponse, error) {
+	session, err := s.db.CreateSession(ctx, db.CreateSessionParams{
+		ID:           refreshPayload.ID,
+		Email:        refreshPayload.Email,
+		RefreshToken: refreshToken,
+		UserAgent:    userAgent,
+		ClientIp:     ipAddress,
+		IsBlocked:    false,
+		ExpiresAt:    refreshPayload.ExpiredAt,
+	})
+	if err != nil {
+		return dto.NewSessionResponse(session), err
+	}
+	return dto.NewSessionResponse(session), nil
 }
 
 func NewUserService(database db.Store, mapRoles map[string]db.Role, configSet config.Config) UserService {
