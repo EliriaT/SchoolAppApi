@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "ggithub.com/EliriaT/SchoolAppApi/pb";
+
+message User {
+  string email = 1;
+  string LastName = 2;
+  string FirstName = 3;
+  string Gender = 4;
+  string PhoneNumber = 5;
+  string Domicile = 6;
+  string BirthDate = 7;
+  google.protobuf.Timestamp password_changed_at = 8;
+  google.protobuf.Timestamp created_at = 9;
+}

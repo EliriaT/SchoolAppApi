@@ -1,4 +1,7 @@
+DB_URL=postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable
+
 network:
+
 	docker network create school-network
 
 postgres:
@@ -14,13 +17,13 @@ dropdb:
 	docker exec -it postgres12 dropdb school
 
 migrateup:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/school?sslmode=disable" -verbose up
+	migrate -path db/migration -database "$(DB_URL)" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:secret@localhost:5432/school?sslmode=disable" -verbose down
+	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
 migrateversion:
-	migrate -path db/migration/ -database "postgresql://root:secret@localhost:5432/school?sslmode=disable" force 1
+	migrate -path db/migration/ -database "$(DB_URL)" force 1
 
 sqlc:
 	sqlc generate
