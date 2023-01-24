@@ -145,7 +145,7 @@ func (server *Server) twoFactorLoginUser(ctx *gin.Context) {
 		return
 	}
 
-	//response.AccessToken = authToken
+	response.AccessToken = authToken
 	ctx.JSON(http.StatusOK, authToken)
 }
 
