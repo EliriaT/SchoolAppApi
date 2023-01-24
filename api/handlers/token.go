@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
 	"github.com/gin-gonic/gin"
-	"log"
 	"net/http"
 	"time"
 )
@@ -26,7 +25,6 @@ func (server *Server) renewAccessToken(ctx *gin.Context) {
 	session, err := server.service.GetSession(ctx, refreshPayload.ID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("aici ")
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
 		}

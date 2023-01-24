@@ -258,7 +258,7 @@ func (s *userService) GetUserByID(ctx context.Context, authPayload *token.Payloa
 		return dto.UserResponse{}, err
 	}
 
-	if authPayload.UserID != user.ID && !CheckRolePresence(authPayload.Role, s.roles[Director].ID) && !CheckRolePresence(authPayload.Role, s.roles[SchoolManager].ID) {
+	if authPayload.UserID != user.ID {
 		return dto.UserResponse{}, ErrUnAuthorized
 	}
 	return dto.NewUserResponse(user), err

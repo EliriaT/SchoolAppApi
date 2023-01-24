@@ -2,12 +2,15 @@ package api
 
 import (
 	"fmt"
-
 	token "github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/config"
 	"github.com/EliriaT/SchoolAppApi/service"
+	"github.com/didip/tollbooth"
+	"github.com/didip/tollbooth/limiter"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"time"
 )
 
 // Serves for HTTP requests
@@ -47,6 +50,16 @@ func (server *Server) setupRouter() {
 	configCors.ExposeHeaders = []string{"Content-Length"}
 
 	router.Use(cors.New(configCors))
+
+	lmt := tollbooth.NewLimiter(1, &limiter.ExpirableOptions{
+		DefaultExpirationTTL: time.Second,
+	})
+	lmt.SetTokenBucketExpirationTTL(time.Hour)
+	lmt.SetMessage("You have reached maximum request limit.")
+	lmt.SetMessageContentType("text/plain; charset=utf-8")
+	lmt.SetStatusCode(http.StatusTooManyRequests)
+
+	router.Use(LimitHandler(lmt))
 
 	router.POST("/users", authMiddleware(server.tokenMaker, server.config), server.createUser)
 	router.GET("/users/:id", authMiddleware(server.tokenMaker, server.config), server.getUserByID)
@@ -119,4 +132,16 @@ func (server *Server) Start(address string) error {
 
 func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
+}
+
+func LimitHandler(lmt *limiter.Limiter) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		httpError := tollbooth.LimitByRequest(lmt, c.Writer, c.Request)
+		if httpError != nil {
+			c.Data(httpError.StatusCode, lmt.GetMessageContentType(), []byte(httpError.Message))
+			c.Abort()
+		} else {
+			c.Next()
+		}
+	}
 }

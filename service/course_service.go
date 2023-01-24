@@ -5,7 +5,6 @@ import (
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
-	"log"
 )
 
 type CourseService interface {
@@ -123,7 +122,7 @@ func (c *courseService) GetCourseByID(ctx context.Context, authToken *token.Payl
 	}
 	courseMarks, err := c.db.GetCourseMarks(ctx, req.CourseID)
 	if err != nil {
-		log.Println("aici")
+
 		return dto.GetCourseMarksResponse{}, err
 	}
 
@@ -136,7 +135,7 @@ func (c *courseService) GetCourseByID(ctx context.Context, authToken *token.Payl
 	if CheckRolePresence(authToken.Role, c.roles[Teacher].ID) {
 		userRoles, err := c.db.GetUserRoleByUserId(ctx, authToken.UserID)
 		if err != nil {
-			log.Println("aici2")
+
 			return dto.GetCourseMarksResponse{}, err
 		}
 		var userRoleID int64

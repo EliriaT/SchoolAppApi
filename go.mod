@@ -16,6 +16,12 @@ require (
 require github.com/vk-rv/pvx v0.0.0-20210912195928-ac00bc32f6e7
 
 require (
+	github.com/didip/tollbooth v4.0.2+incompatible // indirect
+	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
+)
+
+require (
 	github.com/AfterShip/email-verifier v1.3.2
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

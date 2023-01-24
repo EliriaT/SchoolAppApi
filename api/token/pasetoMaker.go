@@ -2,7 +2,6 @@ package token
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/vk-rv/pvx"
@@ -36,7 +35,6 @@ func (p *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 		return nil, err
 	}
 
-	log.Println(payload)
 	err = payload.Valid()
 	if err != nil {
 		return nil, err
