@@ -3,14 +3,15 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"log"
+	"net/http"
+
 	"github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/service"
 	"github.com/EliriaT/SchoolAppApi/service/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
-	"log"
-	"net/http"
 )
 
 var incorrectCredentialsError = errors.New("Incorrect email or password")
@@ -89,7 +90,7 @@ func (server *Server) loginUser(ctx *gin.Context) {
 	}
 	response.AccessToken = accessToken
 
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, accessToken)
 }
 
 func (server *Server) twoFactorLoginUser(ctx *gin.Context) {

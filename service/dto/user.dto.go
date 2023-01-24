@@ -2,8 +2,9 @@ package dto
 
 import (
 	"database/sql"
-	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"time"
+
+	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 )
 
 // When the User is created, if it is admin, it will indicate the school of the director/manager. Otherwise, the school is taken from the token.
