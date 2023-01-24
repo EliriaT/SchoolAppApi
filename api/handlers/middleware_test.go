@@ -26,7 +26,15 @@ func addAuthorization(
 	tokenT, _, err := tokenMaker.CreateToken(email, []int64{seed.RandomInt(1, 2), seed.RandomInt(1, 2)}, seed.RandomInt(1, 1), 0, 1, duration)
 	require.NoError(t, err)
 
-	authorizationHeader := fmt.Sprintf("%s %s", authorizationType, tokenT)
+	tokenPayload, err := tokenMaker.VerifyToken(tokenT)
+	if err != nil {
+		//this means that the expired token test runs
+		return
+	}
+	accessToken, err := tokenMaker.AuthenticateToken(*tokenPayload)
+	require.NoError(t, err)
+
+	authorizationHeader := fmt.Sprintf("%s %s", authorizationType, accessToken)
 	request.Header.Set(authorizationHeaderKey, authorizationHeader)
 }
 
