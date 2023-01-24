@@ -3,10 +3,11 @@ package api
 import (
 	"errors"
 	"fmt"
-	"github.com/EliriaT/SchoolAppApi/api/token"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+
+	"github.com/EliriaT/SchoolAppApi/api/token"
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -51,7 +52,7 @@ func authMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 		//	return
 		//}
 
-		//stored in the gin context with the authorizationPayloadKey
+		// stored in the gin context with the authorizationPayloadKey
 		ctx.Set(authorizationPayloadKey, payload)
 		ctx.Next()
 	}
