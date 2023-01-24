@@ -1,7 +1,6 @@
 DB_URL=postgresql://root:secret@localhost:5432/school?sslmode=disable
 
 network:
-
 	docker network create school-network
 
 postgres:
