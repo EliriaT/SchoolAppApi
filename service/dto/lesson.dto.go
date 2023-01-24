@@ -2,8 +2,9 @@ package dto
 
 import (
 	"encoding/json"
-	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"time"
+
+	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 )
 
 type CreateLessonRequest struct {
@@ -19,7 +20,7 @@ func (st *CreateLessonRequest) UnmarshalJSON(data []byte) error {
 	type parseType struct {
 		Name      string `json:"name" binding:"required"`
 		CourseID  int64  `json:"course_id" binding:"required"`
-		StartHour string `json:"start_hour" binding:"required`
+		StartHour string `json:"start_hour" binding:"required"`
 		EndHour   string `json:"end_hour" binding:"required"`
 		WeekDay   string `json:"week_day" binding:"required,oneof=Monday Tuesday Wednesday Thursday Friday Saturday Sunday"`
 		Classroom string `json:"classroom"`
