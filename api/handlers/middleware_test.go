@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/EliriaT/SchoolAppApi/api/token"
+	"github.com/EliriaT/SchoolAppApi/config"
 	"github.com/EliriaT/SchoolAppApi/db/seed"
 	db "github.com/EliriaT/SchoolAppApi/db/sqlc"
 	"github.com/gin-gonic/gin"
@@ -100,7 +101,7 @@ func TestAuthMiddleware(t *testing.T) {
 			store := db.NewStore(conn)
 			server := newTestServer(t, store)
 
-			server.router.GET("/auth", authMiddleware(server.tokenMaker), func(ctx *gin.Context) {
+			server.router.GET("/auth", authMiddleware(server.tokenMaker, config.GlobalConfig), func(ctx *gin.Context) {
 				ctx.JSON(http.StatusOK, gin.H{})
 			})
 			recorder := httptest.NewRecorder()

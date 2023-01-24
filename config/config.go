@@ -6,6 +6,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+var GlobalConfig Config
+
 type Config struct {
 	DBdriver                   string        `mapstructure:"DB_DRIVER"`
 	DBSource                   string        `mapstructure:"DB_SOURCE"`
@@ -32,5 +34,9 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 
 	err = viper.Unmarshal(&config)
+	if err != nil {
+		return
+	}
+	err = viper.Unmarshal(&GlobalConfig)
 	return
 }

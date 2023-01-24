@@ -36,17 +36,17 @@ func NewServer(service service.Service, config config.Config) (*Server, error) {
 func (server *Server) setupRouter() {
 	router := gin.Default()
 
-	config := cors.DefaultConfig()
+	configCors := cors.DefaultConfig()
 
 	if server.config.CorsOrigin == "*" {
-		config.AllowAllOrigins = true
+		configCors.AllowAllOrigins = true
 	} else {
-		config.AllowOrigins = []string{server.config.CorsOrigin}
+		configCors.AllowOrigins = []string{server.config.CorsOrigin}
 	}
-	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
-	config.ExposeHeaders = []string{"Content-Length"}
+	configCors.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
+	configCors.ExposeHeaders = []string{"Content-Length"}
 
-	router.Use(cors.New(config))
+	router.Use(cors.New(configCors))
 
 	router.POST("/users", authMiddleware(server.tokenMaker, server.config), server.createUser)
 	router.GET("/users/:id", authMiddleware(server.tokenMaker, server.config), server.getUserByID)
