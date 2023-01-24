@@ -28,9 +28,9 @@ func (p *PasetoMaker) CreateToken(email string, role []int64, SchoolID int64, Cl
 func (p *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 	payload := &Payload{}
 
-	err := p.paseto.Decrypt(token, p.symmetricKey, nil).ScanClaims(payload)
+	err := p.paseto.Decrypt(token, p.symmetricKey, pvx.WithFooter("")).ScanClaims(payload)
 	if err != nil {
-		return nil, ErrInvalidToken
+		return nil, err
 	}
 
 	err = payload.Valid()
@@ -45,7 +45,7 @@ func (p *PasetoMaker) AuthenticateToken(payload Payload) (string, error) {
 
 	payload.Authenticated = true
 
-	return p.paseto.Encrypt(p.symmetricKey, &payload, nil)
+	return p.paseto.Encrypt(p.symmetricKey, &payload, pvx.WithFooter(""))
 }
 
 func (p *PasetoMaker) CreatePasswordRecoveryToken(email string, duration time.Duration) (string, error) {
@@ -55,14 +55,14 @@ func (p *PasetoMaker) CreatePasswordRecoveryToken(email string, duration time.Du
 		return "", err
 	}
 
-	return p.paseto.Encrypt(p.symmetricKey, &passwordRecoveryPayload, nil)
+	return p.paseto.Encrypt(p.symmetricKey, &passwordRecoveryPayload, pvx.WithFooter(""))
 }
 
 // VerifyToken checks if the tocken is valid, or not and returns the decrypted payload
 func (p *PasetoMaker) VerifyPasswordToken(token string) (PasswordRecoveryPayload, error) {
 	payload := &PasswordRecoveryPayload{}
 
-	err := p.paseto.Decrypt(token, p.symmetricKey, nil).ScanClaims(payload)
+	err := p.paseto.Decrypt(token, p.symmetricKey, pvx.WithFooter("")).ScanClaims(payload)
 	if err != nil {
 		return PasswordRecoveryPayload{}, ErrInvalidToken
 	}
