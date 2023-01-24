@@ -10,6 +10,7 @@ kind: Ingress
 metadata:
   name: school-ingress
   annotations:
+    nginx.ingress.kubernetes.io/limit-rps: "2"
     cert-manager.io/cluster-issuer: letsencrypt
 spec:
   ingressClassName: nginx
