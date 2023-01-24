@@ -46,11 +46,11 @@ func authMiddleware(tokenMaker token.TokenMaker) gin.HandlerFunc {
 			return
 		}
 
-		//if payload.Authenticated == false && ctx.FullPath() != "/users/twofactor" {
-		//	err := fmt.Errorf("not logged in using 2 factor auth")
-		//	ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
-		//	return
-		//}
+		if payload.Authenticated == false && ctx.FullPath() != "/users/twofactor" {
+			err := fmt.Errorf("not logged in using 2 factor auth")
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
+			return
+		}
 
 		// stored in the gin context with the authorizationPayloadKey
 		ctx.Set(authorizationPayloadKey, payload)
