@@ -10,8 +10,7 @@ import (
 // When the User is created, if it is admin, it will indicate the school of the director/manager. Otherwise, the school is taken from the token.
 // The class is indicated only for students. Teachers and Head Teachers are assigned separately.
 type CreateUserRequest struct {
-	Email string `json:"email" binding:"required,email"`
-	//Password    string    `json:"password" binding:"required,min=10"`
+	Email       string    `json:"email" binding:"required,email"`
 	LastName    string    `json:"lastName" binding:"required,alpha"`
 	FirstName   string    `json:"firstName"  binding:"required,alpha"`
 	Gender      string    `json:"gender" binding:"required,oneof=F M"`
