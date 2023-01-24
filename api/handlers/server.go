@@ -2,9 +2,11 @@ package api
 
 import (
 	"fmt"
+
 	token "github.com/EliriaT/SchoolAppApi/api/token"
 	"github.com/EliriaT/SchoolAppApi/config"
 	"github.com/EliriaT/SchoolAppApi/service"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,6 +35,8 @@ func NewServer(service service.Service, config config.Config) (*Server, error) {
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
+
+	router.Use(cors.Default())
 
 	router.POST("/users", authMiddleware(server.tokenMaker), server.createUser)
 	router.POST("/users/login", server.loginUser)

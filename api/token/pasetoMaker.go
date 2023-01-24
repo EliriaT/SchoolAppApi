@@ -2,15 +2,17 @@ package token
 
 import (
 	"fmt"
-	"github.com/o1egl/paseto"
-	"golang.org/x/crypto/chacha20poly1305"
+	"log"
 	"time"
+
+	"github.com/vk-rv/pvx"
+	"golang.org/x/crypto/chacha20poly1305"
 )
 
 // PasetoMaker is a PASETO token maker which implements the TokenMaker interface
 type PasetoMaker struct {
-	paseto       *paseto.V2
-	symmetricKey []byte
+	paseto       *pvx.ProtoV4Local
+	symmetricKey *pvx.SymKey
 }
 
 // CreateToken creates a new token for a specific user with unique email,
@@ -19,19 +21,22 @@ func (p *PasetoMaker) CreateToken(email string, role []int64, SchoolID int64, Cl
 	if err != nil {
 		return "", payload, err
 	}
-	tokenStr, err := p.paseto.Encrypt(p.symmetricKey, payload, nil)
+
+	tokenStr, err := p.paseto.Encrypt(p.symmetricKey, payload, pvx.WithFooter(""))
 	return tokenStr, payload, err
+
 }
 
 // VerifyToken checks if the tocken is valid, or not and returns the decrypted payload
 func (p *PasetoMaker) VerifyToken(token string) (*Payload, error) {
 	payload := &Payload{}
 
-	err := p.paseto.Decrypt(token, p.symmetricKey, payload, nil)
+	err := p.paseto.Decrypt(token, p.symmetricKey, pvx.WithFooter("")).ScanClaims(payload)
 	if err != nil {
-		return nil, ErrInvalidToken
+		return nil, err
 	}
 
+	log.Println(payload)
 	err = payload.Valid()
 	if err != nil {
 		return nil, err
@@ -44,7 +49,7 @@ func (p *PasetoMaker) AuthenticateToken(payload Payload) (string, error) {
 
 	payload.Authenticated = true
 
-	return p.paseto.Encrypt(p.symmetricKey, payload, nil)
+	return p.paseto.Encrypt(p.symmetricKey, &payload, pvx.WithFooter(""))
 }
 
 func (p *PasetoMaker) CreatePasswordRecoveryToken(email string, duration time.Duration) (string, error) {
@@ -54,14 +59,14 @@ func (p *PasetoMaker) CreatePasswordRecoveryToken(email string, duration time.Du
 		return "", err
 	}
 
-	return p.paseto.Encrypt(p.symmetricKey, passwordRecoveryPayload, nil)
+	return p.paseto.Encrypt(p.symmetricKey, &passwordRecoveryPayload, pvx.WithFooter(""))
 }
 
 // VerifyToken checks if the tocken is valid, or not and returns the decrypted payload
 func (p *PasetoMaker) VerifyPasswordToken(token string) (PasswordRecoveryPayload, error) {
 	payload := &PasswordRecoveryPayload{}
 
-	err := p.paseto.Decrypt(token, p.symmetricKey, payload, nil)
+	err := p.paseto.Decrypt(token, p.symmetricKey, pvx.WithFooter("")).ScanClaims(payload)
 	if err != nil {
 		return PasswordRecoveryPayload{}, ErrInvalidToken
 	}
@@ -80,8 +85,8 @@ func NewPasetoMaker(symmetricKey string) (TokenMaker, error) {
 	}
 
 	tokenMaker := &PasetoMaker{
-		paseto:       paseto.NewV2(),
-		symmetricKey: []byte(symmetricKey),
+		paseto:       pvx.NewPV4Local(),
+		symmetricKey: pvx.NewSymmetricKey([]byte(symmetricKey), pvx.Version4),
 	}
 	return tokenMaker, nil
 }
