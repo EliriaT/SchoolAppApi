@@ -16,6 +16,7 @@ type Service interface {
 	LessonService
 	MarkService
 	EmailService
+	SessionService
 }
 
 type ServerService struct {
@@ -28,6 +29,7 @@ type ServerService struct {
 	LessonService
 	MarkService
 	EmailService
+	SessionService
 }
 
 func NewServerService(database db.Store, configSet config.Config) (Service, error) {
@@ -49,5 +51,6 @@ func NewServerService(database db.Store, configSet config.Config) (Service, erro
 		CourseService:   NewCourseService(database, mapRoles),
 		LessonService:   NewLessonService(database, mapRoles),
 		MarkService:     NewMarkService(database, mapRoles),
-		EmailService:    NewEmailService(configSet.EmailServerLogin, configSet.EmailServerPassword)}, err
+		EmailService:    NewEmailService(configSet.EmailServerLogin, configSet.EmailServerPassword),
+		SessionService:  NewSessionService(database)}, err
 }
