@@ -22,6 +22,7 @@ Checkpoints:
 * [x] Configure the application level rate limiter and the nginx rate limiter
 * [x] Add some minor general test.
 * [x] Add expiration token duration of 5-15  minutes for the access token, and implement refresh session tokens
+* [x] Validate password based the high entropy value
 - [ ] Implement grpc for create user, login user
 - [ ] Make Swagger: API Documentation
 - [ ] Analyze other possible security threats
