@@ -11,12 +11,20 @@ Checkpoints:
 * [x] Implement authentication middleware on the necessary endpoints
 * [x] Implement Two Factor Authentication at Time-base OTP
 * [x] Implement Role-Based-Access to REST endpoints
+* [x] Hide errors messages that contain  implementation sensitive information
+* [x] Check and implement input validation of the requests
 * [x] Dockerise the application
 * [x] Deploy the Database to AWS RDS service
-* [x] Deploy the dockerise application on AWS ECR on each push on main
+* [x] Deploy the dockerized application on AWS ECR on each push on main
 * [x] Deploy the application service, ingress, and nginx lode balancer on AWS EKS
 * [x] Configure automatic deploy to EKS
-
+* [x] Configure and issue the HTTPS certificate
+* [x] Configure the application level rate limiter and the nginx rate limiter
+* [x] Add some minor general test.
+* [x] Add expiration token duration of 5-15  minutes for the access token, and implement refresh session tokens
+- [ ] Implement grpc for create user, login user
+- [ ] Make Swagger: API Documentation
+- [ ] Analyze other possible security threats
 
 ## Run application
 
@@ -36,8 +44,12 @@ To create the School database :
  
  `make test`
 
-`docker build -t school-api:latest .`
+To run the server:
+ 
+ `make server`
 
-`docker run --name school-api -p 8080:8080 -e GIN_MODE=release  --network school-network -e DB_SOURCE="postgresql://root:secret@posgtgres:5432/school?sslmode=disable" school-api:latest`
+To run the dockerized application:
+ 
+ `docker compose up`
 
-`docker network create school-network`
+
