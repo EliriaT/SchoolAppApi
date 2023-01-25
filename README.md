@@ -4,6 +4,20 @@
 
 This repository contains the server app of the Education School Management System. The work is still in progress.
 
+Checkpoints:
+* [x] Design the database schema, and apply the migrations
+* [x] Implement SQL CRUD queries and use prepared statements
+* [x] Implement all REST API endpoints.
+* [x] Implement authentication middleware on the necessary endpoints
+* [x] Implement Two Factor Authentication at Time-base OTP
+* [x] Implement Role-Based-Access to REST endpoints
+* [x] Dockerise the application
+* [x] Deploy the Database to AWS RDS service
+* [x] Deploy the dockerise application on AWS ECR on each push on main
+* [x] Deploy the application service, ingress, and nginx lode balancer on AWS EKS
+* [x] Configure automatic deploy to EKS
+
+
 ## Run application
 
 First run the PostgreSQL container:
