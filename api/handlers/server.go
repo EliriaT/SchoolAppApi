@@ -51,7 +51,7 @@ func (server *Server) setupRouter() {
 
 	router.Use(cors.New(configCors))
 
-	lmt := tollbooth.NewLimiter(1, &limiter.ExpirableOptions{
+	lmt := tollbooth.NewLimiter(5, &limiter.ExpirableOptions{
 		DefaultExpirationTTL: time.Second,
 	})
 	lmt.SetTokenBucketExpirationTTL(time.Hour)
