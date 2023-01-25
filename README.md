@@ -16,6 +16,7 @@ This repository contains the server app of the Education School Management Syste
 * [x] Check and implement input validation of the requests
 * [x] Dockerise the application
 * [x] Deploy the Database to AWS RDS service
+* [x] Manage app secrets with AWS Secrets Manager
 * [x] Deploy the dockerized application on AWS ECR on each push on main
 * [x] Deploy the application service, ingress, and nginx load balancer on AWS EKS
 * [x] Configure automatic deploy to EKS
