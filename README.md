@@ -10,14 +10,14 @@ This repository contains the server app of the Education School Management Syste
 * [x] Implement SQL CRUD queries and use prepared statements
 * [x] Implement all REST API endpoints.
 * [x] Implement authentication middleware on the necessary endpoints
-* [x] Implement Two Factor Authentication at Time-base OTP
+* [x] Implement Two Factor Authentication based on Time-based OTP
 * [x] Implement Role-Based-Access to REST endpoints
 * [x] Hide errors messages that contain  implementation sensitive information
 * [x] Check and implement input validation of the requests
 * [x] Dockerise the application
 * [x] Deploy the Database to AWS RDS service
 * [x] Deploy the dockerized application on AWS ECR on each push on main
-* [x] Deploy the application service, ingress, and nginx lode balancer on AWS EKS
+* [x] Deploy the application service, ingress, and nginx load balancer on AWS EKS
 * [x] Configure automatic deploy to EKS
 * [x] Configure and issue the HTTPS certificate
 * [x] Configure the application level rate limiter and the nginx rate limiter
